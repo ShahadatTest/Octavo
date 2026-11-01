@@ -1,0 +1,72 @@
+# git-cliff configuration for Octavo — https://git-cliff.org/docs/configuration
+#
+#   npm run changelog       rewrite CHANGELOG.md, including an [Unreleased] section
+#   npm run version:next    print the next version implied by the commits since the last tag
+#   npm run release         bump, write the changelog, commit and tag (see scripts/release.js)
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to Octavo are recorded here. The format follows
+[Keep a Changelog](https://keepachangelog.com), versions follow
+[Semantic Versioning](https://semver.org), and entries are generated from
+[Conventional Commits](https://www.conventionalcommits.org) by git-cliff.
+
+"""
+# Tera template: https://keats.github.io/tera/docs/
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}\
+{% if commit.breaking %}**Breaking:** {% endif %}\
+{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}
+"""
+footer = ""
+trim = true
+postprocessors = []
+
+[git]
+conventional_commits = true
+# Keep commits that do not follow the convention (they land under "Other") rather than losing them.
+filter_unconventional = false
+split_commits = false
+commit_preprocessors = []
+# The <!-- N --> prefixes only order the groups; `striptags` removes them in the output.
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Added" },
+  { message = "^fix", group = "<!-- 1 -->Fixed" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^refactor", group = "<!-- 3 -->Changed" },
+  { message = "^docs", group = "<!-- 4 -->Documentation" },
+  { message = "^test", group = "<!-- 5 -->Tests" },
+  { message = "^build|^ci", group = "<!-- 6 -->Build" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore\\(deps\\)", group = "<!-- 7 -->Dependencies" },
+  { message = "^style", skip = true },
+  { message = "^chore", group = "<!-- 8 -->Maintenance" },
+  { message = "^revert", group = "<!-- 9 -->Reverted" },
+  { message = ".*", group = "<!-- 10 -->Other" },
+]
+protect_breaking_commits = false
+filter_commits = false
+tag_pattern = "v[0-9].*"
+skip_tags = ""
+ignore_tags = ""
+topo_order = false
+sort_commits = "oldest"
+
+[bump]
+# Before 1.0: features bump the minor version, fixes the patch version, and a
+# breaking change bumps the minor version rather than jumping to 1.0.
+features_always_bump_minor = true
+breaking_always_bump_major = false
+initial_tag = "v0.1.0"
