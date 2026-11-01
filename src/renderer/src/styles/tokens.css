@@ -1,0 +1,74 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f3ef;
+  --surface: #fcfbf8;
+  --surface-2: #efede7;
+  --surface-3: #e5e2da;
+  --hover: rgba(20, 20, 19, 0.055);
+  --border: rgba(20, 20, 19, 0.1);
+  --border-strong: rgba(20, 20, 19, 0.2);
+  --text: #141413;
+  --text-2: #55524b;
+  --text-3: #8a867c;
+  --accent: #b5462a;
+  --accent-hover: #9f3c23;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(181, 70, 42, 0.11);
+  --accent-ring: rgba(181, 70, 42, 0.38);
+  --danger: #c93a3a;
+  --danger-soft: rgba(201, 58, 58, 0.1);
+  --good: #2f7d4a;
+  --selection: rgba(181, 70, 42, 0.2);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.2);
+  --cover-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 6px 16px rgba(40, 30, 20, 0.14);
+  --cover-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.12), 0 14px 32px rgba(40, 30, 20, 0.22);
+
+  --hl-yellow: #f6c445;
+  --hl-green: #7cc98a;
+  --hl-blue: #6ea8ec;
+  --hl-pink: #f08cae;
+  --hl-purple: #b495ec;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Literata Variable', 'Literata', Georgia, 'Times New Roman', serif;
+  --titlebar-h: 40px;
+  --controls-w: 0px;
+}
+
+:root[data-platform='win32'] {
+  /* Width of the native minimise / maximise / close buttons drawn over the title bar. */
+  --controls-w: 138px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #111110;
+  --surface: #1b1b19;
+  --surface-2: #232321;
+  --surface-3: #2d2c29;
+  --hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: #efeee9;
+  --text-2: #c4c1b6;
+  --text-3: #8a867c;
+  --accent: #e0704f;
+  --accent-hover: #e8876a;
+  --accent-ink: #1a0d08;
+  --accent-soft: rgba(224, 112, 79, 0.16);
+  --accent-ring: rgba(224, 112, 79, 0.45);
+  --danger: #e66767;
+  --danger-soft: rgba(230, 103, 103, 0.14);
+  --good: #4fbf74;
+  --selection: rgba(224, 112, 79, 0.32);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --cover-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.45);
+  --cover-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 14px 32px rgba(0, 0, 0, 0.6);
+}

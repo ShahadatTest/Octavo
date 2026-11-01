@@ -1,0 +1,600 @@
+.reader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  --page-bg: #fbfaf6;
+  --page-fg: #1d1c1a;
+  --page-fg-2: #6d6a62;
+  --page-line: rgba(0, 0, 0, 0.08);
+}
+
+.reader[data-reader-theme='sepia'] {
+  --page-bg: #f4e9d3;
+  --page-fg: #4a3826;
+  --page-fg-2: #8a7254;
+  --page-line: rgba(74, 56, 38, 0.12);
+}
+
+.reader[data-reader-theme='night'] {
+  --page-bg: #161615;
+  --page-fg: #d9d4c7;
+  --page-fg-2: #8d887c;
+  --page-line: rgba(255, 255, 255, 0.08);
+}
+
+.reader__main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  transition: background 0.2s;
+}
+
+.reader__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  /* Must equal the color-scheme the book page declares: when an iframe and its document disagree,
+     Chromium paints an opaque backdrop behind the page instead of leaving it transparent. */
+  color-scheme: light;
+}
+
+.reader[data-reader-theme='night'] .reader__stage {
+  color-scheme: dark;
+}
+
+/* The reader's bar takes the page theme, so a night page is not framed by a light strip. */
+.reader .titlebar {
+  background: var(--page-bg);
+  color: var(--page-fg);
+  border-bottom-color: var(--page-line);
+  transition: background 0.2s;
+}
+
+.reader .titlebar .icon-btn {
+  color: var(--page-fg-2);
+}
+
+.reader .titlebar .icon-btn:hover:not(:disabled) {
+  color: var(--page-fg);
+  background: color-mix(in srgb, var(--page-fg) 8%, transparent);
+}
+
+.reader .titlebar .icon-btn[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.reader .titlebar__title span {
+  color: var(--page-fg-2);
+}
+
+.reader .titlebar .seg {
+  background: color-mix(in srgb, var(--page-fg) 6%, transparent);
+  border-color: var(--page-line);
+}
+
+.reader .titlebar .seg button {
+  color: var(--page-fg-2);
+}
+
+.reader .titlebar .seg button[aria-pressed='true'] {
+  background: var(--page-bg);
+  color: var(--page-fg);
+}
+
+.reader__stage foliate-view {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.reader__loading,
+.reader__error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--page-fg-2);
+  text-align: center;
+  padding: 24px;
+}
+
+.reader__error strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--page-fg);
+}
+
+/* Click zones at the page edges turn pages in paginated layout. */
+.turn {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 56px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--page-fg-2);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.turn:hover {
+  opacity: 1;
+}
+
+.turn--prev {
+  left: 0;
+}
+
+.turn--next {
+  right: 0;
+}
+
+.reader__footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 42px;
+  padding: 0 22px;
+  border-top: 1px solid var(--page-line);
+  color: var(--page-fg-2);
+  font-size: 12.5px;
+  user-select: none;
+}
+
+.reader__footer .chapter {
+  min-width: 0;
+  max-width: 34%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scrubber {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.scrubber input {
+  width: 100%;
+  margin: 0;
+}
+
+.scrubber__ticks {
+  position: absolute;
+  inset: 0 0 auto;
+  top: 50%;
+  height: 0;
+  pointer-events: none;
+}
+
+.scrubber__ticks i {
+  position: absolute;
+  top: 5px;
+  width: 1px;
+  height: 4px;
+  background: var(--page-fg-2);
+  opacity: 0.45;
+}
+
+.reader__footer .where {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- sidebar ----------------------------------------------------------------------------- */
+
+.bookside {
+  width: 340px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  animation: fade 0.12s ease-out;
+}
+
+.bookside__book {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 16px 12px;
+}
+
+.bookside__book .cover {
+  width: 52px;
+}
+
+.bookside__book strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  line-height: 1.25;
+}
+
+.bookside__book span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+.bookside__tabs {
+  display: flex;
+  padding: 0 16px 10px;
+}
+
+.bookside__tabs .seg {
+  width: 100%;
+}
+
+.bookside__tabs .seg button {
+  flex: 1;
+}
+
+.bookside__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 10px 20px;
+}
+
+.bookside__empty {
+  padding: 30px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.bookside__empty kbd {
+  margin: 0 2px;
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--text-2);
+}
+
+.toc-item:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.toc-item[aria-current='true'] {
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--accent-soft);
+}
+
+.anno {
+  position: relative;
+  padding: 10px 10px 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.anno + .anno {
+  margin-top: 2px;
+}
+
+.anno:hover {
+  background: var(--hover);
+}
+
+.anno::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--anno-color, var(--accent));
+}
+
+.anno__text {
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.anno__note {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+
+.anno__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.anno__meta span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.anno__actions {
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.anno:hover .anno__actions,
+.anno:focus-within .anno__actions {
+  opacity: 1;
+}
+
+.bookside__foot {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.bookside__foot .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---- selection and highlight popover ----------------------------------------------------- */
+
+.hl-pop {
+  position: fixed;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.12s ease-out;
+}
+
+.hl-pop__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hl-pop__sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+
+.swatch i {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  transition: transform 0.1s;
+}
+
+.swatch:hover i {
+  transform: scale(1.15);
+}
+
+.swatch[aria-pressed='true'] i {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--swatch);
+}
+
+.hl-pop textarea {
+  width: 280px;
+  min-height: 72px;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  outline: none;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.hl-pop textarea:focus {
+  border-color: var(--accent);
+}
+
+.hl-pop__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.hl-pop__foot .btn {
+  height: 28px;
+}
+
+/* ---- appearance -------------------------------------------------------------------------- */
+
+.appearance {
+  width: 320px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.appearance__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.appearance__row > label,
+.appearance__label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.appearance .seg {
+  width: 100%;
+}
+
+.appearance .seg button {
+  flex: 1;
+}
+
+.theme-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.theme-chip {
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.theme-chip[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper input {
+  flex: 1;
+}
+
+.stepper output {
+  width: 42px;
+  text-align: right;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+/* ---- PDF --------------------------------------------------------------------------------- */
+
+.pdf-container {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background: var(--page-bg);
+}
+
+.pdf-container .pdfViewer {
+  padding: 18px 0 40px;
+}
+
+.pdf-container .pdfViewer .page {
+  margin: 0 auto 14px;
+  border: 0;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.14),
+    0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-container[data-night='true'] .pdfViewer .page {
+  background: #161615;
+}
+
+.pdf-container[data-night='true'] .canvasWrapper {
+  filter: invert(0.9) hue-rotate(180deg) brightness(0.95);
+}
+
+.pdf-hl-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.pdf-container[data-night='true'] .pdf-hl-layer {
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.pdf-hl-layer i {
+  position: absolute;
+  border-radius: 2px;
+  opacity: 0.45;
+}
+
+.pdf-zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pdf-zoom output {
+  min-width: 46px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

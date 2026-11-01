@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Octavo app icon: an open book seen from above on a terracotta tile. Source for npm run icons. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cf5a3a"/>
+      <stop offset="1" stop-color="#93361f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#tile)"/>
+  <!-- left leaf -->
+  <path d="M512 300 C 420 236 300 222 196 244 L 196 760 C 300 738 420 752 512 816 Z" fill="#ffffff"/>
+  <!-- right leaf, in the shade of the fold -->
+  <path d="M512 300 C 604 236 724 222 828 244 L 828 760 C 724 738 604 752 512 816 Z" fill="#ffffff" opacity="0.78"/>
+  <!-- lines of text -->
+  <path d="M262 382 C 330 372 400 380 454 404 M262 470 C 330 460 400 468 454 492 M262 558 C 330 548 400 556 454 580" stroke="#b5462a" stroke-width="22" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <!-- spine -->
+  <path d="M512 300 L 512 816" stroke="#93361f" stroke-width="18"/>
+</svg>

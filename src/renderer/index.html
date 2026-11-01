@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      Book pages render in blob: iframes, which inherit this policy: scripts inside an EPUB never run.
+      Network access is also blocked in the main process; this keeps remote loads out at the source.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' blob:; img-src 'self' data: blob: octavo-book:; font-src 'self' data: blob: file:; connect-src 'self' octavo-book: blob: data: file: ws://localhost:*; frame-src 'self' blob:; worker-src 'self' blob:; media-src 'self' blob:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Octavo</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

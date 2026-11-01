@@ -1,0 +1,13 @@
+# Keep LF line endings in the repository and in every working copy, on every OS.
+* text=auto eol=lf
+
+# Binary assets: never touch their bytes.
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.epub binary
+*.pdf binary
