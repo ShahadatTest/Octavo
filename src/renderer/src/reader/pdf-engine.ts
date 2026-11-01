@@ -185,11 +185,11 @@ export class PdfEngine implements Engine {
     }, 120)
   }
 
-  /** The page at the top edge of the view, and how far down it the edge sits (0 to 1). */
-  private topPosition(): { page: number; y: number } {
+  /** The page at a line `dy` pixels below the top of the view, and how far down it the line sits (0 to 1). */
+  private positionAt(dy = 1): { page: number; y: number } {
     const viewer = this.viewer
     if (!viewer || viewer.pagesCount === 0) return { page: 1, y: 0 }
-    const top = this.container.getBoundingClientRect().top + 1
+    const top = this.container.getBoundingClientRect().top + dy
     let lo = 0
     let hi = viewer.pagesCount - 1
     while (lo < hi) {
@@ -204,10 +204,13 @@ export class PdfEngine implements Engine {
 
   private report(): void {
     if (!this.viewer) return
-    this.current = this.topPosition()
+    this.current = this.positionAt()
     const n = this.pageCount
     const { page, y } = this.current
-    const chapter = this.chapterFor(page, y)
+    // A heading a little way down the view already names what is being read; outline entries point
+    // at headings, which sit below the top of their page.
+    const probe = this.positionAt(this.container.clientHeight / 4)
+    const chapter = this.chapterFor(probe.page, probe.y)
     const atEnd = this.container.scrollTop + this.container.clientHeight >= this.container.scrollHeight - 4
     this.events.onRelocate({
       fraction: n ? clamp((page - 1 + y) / n, 0, 1) : 0,
@@ -307,7 +310,7 @@ export class PdfEngine implements Engine {
     const heights = client.map((r) => r.height).sort((a, b) => a - b)
     const median = heights[Math.floor(heights.length / 2)] || 1
     const out: number[][] = []
-    const first = this.topPosition().page - 1
+    const first = this.positionAt().page - 1
     const candidates: number[] = []
     for (let i = Math.max(0, first - 2); i < Math.min(viewer.pagesCount, first + 6); i++) candidates.push(i)
     for (const index of candidates) {
@@ -415,7 +418,7 @@ export class PdfEngine implements Engine {
     this.container.dataset.night = String(s.theme === 'night' && s.pdfNight)
     if (!viewer) return
     if (!prev || prev.pdfZoom !== s.pdfZoom) {
-      const keep = this.topPosition()
+      const keep = this.positionAt()
       viewer.currentScaleValue = s.pdfZoom
       this.scrollToPosition(keep.page, keep.y)
     }
@@ -429,7 +432,7 @@ export class PdfEngine implements Engine {
     this.lastWidth = width
     const mode = viewer.currentScaleValue
     if (mode !== 'auto' && mode !== 'page-width' && mode !== 'page-fit') return
-    const keep = this.topPosition()
+    const keep = this.positionAt()
     viewer.currentScaleValue = mode
     this.scrollToPosition(keep.page, keep.y)
   }
@@ -437,7 +440,7 @@ export class PdfEngine implements Engine {
   zoomBy(factor: number): void {
     const viewer = this.viewer
     if (!viewer) return
-    const keep = this.topPosition()
+    const keep = this.positionAt()
     viewer.currentScale = clamp(viewer.currentScale * factor, 0.3, 5)
     this.scrollToPosition(keep.page, keep.y)
   }

@@ -152,6 +152,9 @@ Bookmarks, Highlights. Bottom: progress scrubber with chapter ticks and
   theme; the sidebar and dialogs keep the app theme.
 - A PDF's current section comes from its outline, by page and by the height of
   each heading on the page, since several sections often start on one page.
+  It is read a quarter of the way down the view, not at the top edge: outline
+  entries point at headings, so at the top of a chapter's first page the edge
+  is still above the heading and would name the previous section.
 - Keys: ← → PgUp PgDn Space to turn pages, Ctrl+B bookmark, Esc back to the
   gallery.
 
