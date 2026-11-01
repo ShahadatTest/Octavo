@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import { BookOpen, Check, FileText, FolderOpen, NotebookPen, RotateCcw, Trash2 } from 'lucide-react'
+import { BookOpen, Check, FileText, FolderOpen, NotebookPen, PenLine, RotateCcw, Trash2 } from 'lucide-react'
 import { bookProgress, matchesFilter, matchesQuery, sortBooks, type BookProgress } from '@shared/books'
 import type { Book, GalleryFilter, GallerySort } from '@shared/types'
 import { useStore } from '../store'
@@ -213,7 +213,7 @@ function BookMenu({
   progress?: BookProgress
   onClose(): void
 }): ReactNode {
-  const { openBook, toggleFinished, exportBook, removeBook } = useStore.getState()
+  const { openBook, toggleFinished, exportBook, removeBook, editDetails } = useStore.getState()
   const run = (fn: () => void): void => {
     onClose()
     fn()
@@ -233,6 +233,9 @@ function BookMenu({
           </button>
         )}
         <div className="menu__sep" />
+        <button className="menu__item" onClick={() => run(() => editDetails(book))}>
+          <PenLine size={15} /> Edit title and author…
+        </button>
         <button className="menu__item" onClick={() => run(() => void toggleFinished(book))}>
           {progress?.finished ? <RotateCcw size={15} /> : <Check size={15} />}
           {progress?.finished ? 'Mark as not finished' : 'Mark as finished'}

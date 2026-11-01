@@ -28,6 +28,7 @@ Library/
     catalog.json              index of every book file Octavo has seen
     covers/<file-id>.webp     cover thumbnails, 480 px tall
     annotations/<file-id>.json
+    pages/<file-id>.json      PDFs only: printed page labels and page text
 ```
 
 - A **file id** is the first 20 hex characters of the file's SHA-256. Annotations
@@ -61,6 +62,46 @@ Reading progress, highlights and bookmarks stay per file. A CFI in the EPUB
 cannot be mapped to a position in the PDF. The card shows the progress of
 whichever file was read most recently, and opening a book reopens that format.
 
+## Titles and authors
+
+Metadata is cleaned when a file is read: a bracketed ISBN in front of a title
+goes, "Surname, Given" becomes "Given Surname" when the surname is one word,
+"A & B" and "A, B, and C" become separate authors, and "... [et al.]" tails
+are dropped. `INDEX_VERSION` in `shared/types.ts` records the extraction
+version on each file; raising it makes Octavo read every file again on the
+next start.
+
+The reader can override title and authors from a card's right-click menu
+("Edit title and author…"). The override is stored as `custom` on every file
+of the book in `catalog.json` and wins over the files' metadata, survives
+re-reading, and can be dropped again ("Use the file's details"). The book
+files are never written to.
+
+## Printed page numbers
+
+A highlight or bookmark records the printed page it is on, shown as "p. 112"
+in the sidebar and in the Obsidian note, and the reader's footer shows the
+current page.
+
+- **PDF:** the page's label from the PDF ("xii", "112"), or its number when
+  the PDF has no labels.
+- **EPUB:** EPUBs can carry the print edition's page map (`page-list`), but
+  none of the 28 in the first real library did. When the same book is in the
+  library as a PDF, Octavo extracts each PDF page's text once
+  (`.octavo/pages/<pdf-id>.json`, about 1 MB per 500 pages) and finds the
+  EPUB passage there. Text is compared as lower-case letters and digits only,
+  which absorbs line-end hyphens, ligatures, curly quotes and spacing. Up to
+  four 64-character probes are tried in case a page break, running head or
+  footnote marker interrupts the first; repeats resolve to the match nearest
+  the passage's position in the book. On the 28 real pairs, 1,680 of 1,680
+  sampled paragraphs were found, 1,679 within 15% of their expected position.
+- **EPUB without a PDF:** no page; the footer shows foliate-js's "Loc", a
+  fixed slice of about 1,500 characters that does not move with font size.
+
+Page text is built in the background after metadata (1 to 2.5 s per book) or
+on demand when a paired EPUB is opened. Highlights made before their page was
+known are filled in the next time the book is opened.
+
 ## Annotation file
 
 ```jsonc
@@ -70,8 +111,8 @@ whichever file was read most recently, and opening a book reopens that format.
   "title": "Data Contracts",          // for humans browsing the folder
   "lastOpenedAt": "2026-11-01T14:02:11Z",
   "position": { "at": <locator>, "fraction": 0.34, "label": "Chapter 3", "updatedAt": "…" },
-  "bookmarks":  [{ "id", "at", "fraction", "label", "excerpt", "createdAt" }],
-  "highlights": [{ "id", "at", "fraction", "label", "text", "note", "color", "createdAt", "updatedAt" }]
+  "bookmarks":  [{ "id", "at", "fraction", "label", "page", "excerpt", "createdAt" }],
+  "highlights": [{ "id", "at", "fraction", "label", "page", "text", "note", "color", "createdAt", "updatedAt" }]
 }
 ```
 
@@ -84,8 +125,10 @@ then rename).
 
 ## Screens
 
-**Gallery.** A grid of 2:3 covers with title, author, a thin progress bar and
-EPUB/PDF badges. A "Continue reading" shelf above the grid when something is in
+**Gallery.** A grid of covers with title, author, a thin progress bar and
+EPUB/PDF badges. Each cover keeps its own proportions and stands on the
+bottom-left of a 3:4 slot, so nothing is cropped; 3:4 is closest to most
+technical books (7 x 9.19 in, 52 of the first 63 covers). A "Continue reading" shelf above the grid when something is in
 progress. Search by title or author; sort by recently read, recently added,
 title or author; filter by All / Reading / Not started / Finished. Cover size
 slider. Drop files, folders or zips anywhere on the window to import. Right

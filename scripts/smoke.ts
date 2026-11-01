@@ -119,6 +119,36 @@ async function main(): Promise<void> {
   assert.equal(byTitle['The Lighthouse Keeper']?.img, true)
   await shot(page, '02-gallery')
 
+  // Every cover is drawn at its own proportions: nothing cropped to fit the slot.
+  const shapes = await page.$$eval('.card .cover__book img', (imgs) =>
+    (imgs as HTMLImageElement[]).map((img) => {
+      const r = img.parentElement!.getBoundingClientRect()
+      return { frame: r.width / r.height, image: img.naturalWidth / img.naturalHeight }
+    })
+  )
+  assert.ok(shapes.length >= 2)
+  for (const s of shapes) assert.ok(Math.abs(s.frame - s.image) < 0.02, `cover cropped: frame ${s.frame} vs image ${s.image}`)
+
+  // Edit a book's title and authors, then go back to what the file says.
+  await page.click('.card[title="Field Notes on Rivers"]', { button: 'right' })
+  await page.click('.menu__item:has-text("Edit title and author")')
+  await page.waitForSelector('.details')
+  await page.fill('.details input >> nth=0', 'Rivers: Field Notes')
+  await page.fill('.details input[aria-label="Author 1"]', 'T. Reyes')
+  await page.click('.details button:has-text("Add author")')
+  await page.fill('.details input[aria-label="Author 2"]', 'A. Second')
+  await shot(page, '02b-edit-details')
+  await page.click('.details button[type="submit"]')
+  await page.waitForSelector('.card[title="Rivers: Field Notes"]')
+  assert.equal(
+    await page.$eval('.card[title="Rivers: Field Notes"] .card__author', (e) => e.textContent),
+    'T. Reyes & A. Second'
+  )
+  await page.click('.card[title="Rivers: Field Notes"]', { button: 'right' })
+  await page.click('.menu__item:has-text("Edit title and author")')
+  await page.click(`.details button:has-text("Use the file's details")`)
+  await page.waitForSelector('.card[title="Field Notes on Rivers"]')
+
   const files = await fileIds(page)
   const lighthouseEpub = files.find((f) => f.title === 'The Lighthouse Keeper' && f.format === 'epub')!
   const lighthousePdf = files.find((f) => f.title === 'The Lighthouse Keeper' && f.format === 'pdf')!
@@ -172,6 +202,16 @@ async function main(): Promise<void> {
   assert.equal(state.highlights.length, 1)
   assert.match(state.highlights[0].note, /counts the light/)
   assert.ok('cfi' in state.highlights[0].at)
+  // The EPUB has no page map of its own; its page comes from the paired PDF's text.
+  await page.waitForFunction(
+    async (id) => !!(await window.octavo.getState(id)).highlights[0]?.page,
+    lighthouseEpub.id,
+    { timeout: 15000, polling: 250 }
+  )
+  state = await page.evaluate((id) => window.octavo.getState(id), lighthouseEpub.id)
+  console.log(`EPUB highlight on printed page ${state.highlights[0].page}`)
+  assert.match(state.highlights[0].page!, /^\d+$/)
+  assert.match(await page.$eval('.reader__footer .where', (e) => e.textContent ?? ''), /^Page \d+ · \d+%$/)
   await page.waitForTimeout(300)
   const tint = await highlightPixels(page, firstLine, 'yellow')
   console.log(`highlight tint ${(tint * 100).toFixed(0)}%`)
@@ -249,6 +289,7 @@ async function main(): Promise<void> {
   const at = pdfState.highlights[0].at as { page: number; rects: number[][] }
   assert.equal(at.page, 2)
   assert.equal(at.rects.length, 3, 'three selected lines become three boxes')
+  assert.equal(pdfState.highlights[0].page, '2', 'PDF highlight carries its page label')
   await page.keyboard.press('Escape')
   await shot(page, '12-pdf-highlight')
 

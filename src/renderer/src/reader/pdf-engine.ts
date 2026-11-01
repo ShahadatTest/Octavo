@@ -34,6 +34,8 @@ export class PdfEngine implements Engine {
   private current = { page: 1, y: 0 }
   private reportTimer = 0
   private settings: ReaderSettings | null = null
+  /** Printed page labels from the PDF ("xii", "112"); empty when it has none. */
+  private labels: string[] = []
   private destroyed = false
   private lastWidth = 0
   private resizeFrame = 0
@@ -68,6 +70,10 @@ export class PdfEngine implements Engine {
     return this.doc?.numPages ?? 0
   }
 
+  pageLabel(page: number): string {
+    return this.labels[page - 1]?.trim() || String(page)
+  }
+
   get zoom(): number {
     return this.viewer?.currentScale ?? 1
   }
@@ -80,6 +86,7 @@ export class PdfEngine implements Engine {
       return
     }
     this.doc = doc
+    this.labels = ((await doc.getPageLabels().catch(() => null)) ?? []) as string[]
     const bus = new EventBus()
     const links = new PDFLinkService({ eventBus: bus, externalLinkTarget: LinkTarget.BLANK })
     const viewer = new PDFViewer({
@@ -207,7 +214,8 @@ export class PdfEngine implements Engine {
       chapter: chapter?.label ?? '',
       chapterId: chapter?.id ?? null,
       at: { page, y: Math.round(y * 1000) / 1000 },
-      where: `Page ${page} of ${n}`,
+      where: `Page ${this.pageLabel(page)}`,
+      page: this.pageLabel(page),
       atEnd
     })
   }
@@ -286,7 +294,8 @@ export class PdfEngine implements Engine {
       at: { page, rects },
       rect: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
       fraction: this.pageCount ? (page - 1) / this.pageCount : 0,
-      label: this.chapterFor(page, this.yOfPdfPoint(page, rects[0][3]))?.label ?? ''
+      label: this.chapterFor(page, this.yOfPdfPoint(page, rects[0][3]))?.label ?? '',
+      page: this.pageLabel(page)
     })
   }
 
@@ -391,7 +400,8 @@ export class PdfEngine implements Engine {
     return {
       at: { page, y: Math.round(y * 1000) / 1000 },
       fraction: this.pageCount ? (page - 1 + y) / this.pageCount : 0,
-      label: this.chapterFor(page, y)?.label ?? `Page ${page}`,
+      label: this.chapterFor(page, y)?.label ?? '',
+      page: this.pageLabel(page),
       excerpt
     }
   }

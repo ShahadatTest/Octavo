@@ -21,8 +21,15 @@ interface Props {
   onExport(): void
 }
 
-function TocList({
-  items,
+/** "p. 112 · Chapter 3 · today": the printed page when known, the chapter, and when it was made. */
+function whereLine(item: Highlight | Bookmark): string {
+  const fallback = 'page' in item.at ? `Page ${item.at.page}` : percent(item.fraction)
+  return [item.page ? `p. ${item.page}` : '', item.label || (item.page ? '' : fallback), relativeDay(item.createdAt)]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+function TocList({  items,
   depth,
   current,
   onGo
@@ -90,7 +97,7 @@ function HighlightItem({ h, onGo, onDelete, onSaveNote }: { h: Highlight; onGo()
       )}
       <div className="anno__meta">
         <span>
-          {h.label || ('page' in h.at ? `Page ${h.at.page}` : percent(h.fraction))} · {relativeDay(h.createdAt)}
+          {whereLine(h)}
         </span>
         <div className="anno__actions" onClick={(e) => e.stopPropagation()}>
           <button className="icon-btn icon-btn--sm" title={h.note ? 'Edit note' : 'Add note'} onClick={() => setEditing(true)}>
@@ -150,7 +157,7 @@ export function Sidebar(props: Props): ReactNode {
                 </div>
                 <div className="anno__meta">
                   <span>
-                    {b.label || ('page' in b.at ? `Page ${b.at.page}` : percent(b.fraction))} · {relativeDay(b.createdAt)}
+                    {whereLine(b)}
                   </span>
                   <div className="anno__actions" onClick={(e) => e.stopPropagation()}>
                     <button className="icon-btn icon-btn--sm" title="Remove bookmark" onClick={() => props.onDeleteBookmark(b.id)}>

@@ -60,6 +60,29 @@ test('PDF highlights cite the page; two formats get their own sections', () => {
   assert.ok(!md.includes('author:'))
 })
 
+test('a printed page wins over the PDF page and the percentage', () => {
+  const md = renderNote({
+    title: 'Book',
+    authors: [],
+    date: '2026-11-01',
+    sections: [
+      {
+        format: 'epub',
+        highlights: [h({ id: 'e', page: '112', fraction: 0.3 }), h({ id: 'f', fraction: 0.5, label: 'Chapter 2' })]
+      }
+    ]
+  })
+  assert.match(md, /\*p\. 112\*/)
+  assert.match(md, /\*50%\*/)
+  const pdf = renderNote({
+    title: 'Book',
+    authors: [],
+    date: '2026-11-01',
+    sections: [{ format: 'pdf', highlights: [h({ at: { page: 130, rects: [] }, page: 'xii' })] }]
+  })
+  assert.match(pdf, /\*p\. xii\*/)
+})
+
 test('only notes with source: octavo in their frontmatter count as ours', () => {
   assert.ok(isOctavoNote('---\ntitle: "x"\nsource: octavo\n---\nbody'))
   assert.ok(!isOctavoNote('---\ntitle: "x"\n---\nsource: octavo'))

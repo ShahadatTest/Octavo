@@ -19,6 +19,9 @@ const api: OctavoApi = {
   // Dropped File objects carry no path in a sandboxed renderer; Electron resolves it here.
   pathForFile: (file) => webUtils.getPathForFile(file),
   saveIndex: (update) => ipcRenderer.invoke('library:saveIndex', update),
+  setBookDetails: (ids, details) => ipcRenderer.invoke('library:setDetails', ids, details),
+  getPageIndex: (id) => ipcRenderer.invoke('pages:get', id),
+  savePageIndex: (id, index) => ipcRenderer.invoke('pages:save', id, index),
   removeFiles: (ids) => ipcRenderer.invoke('library:remove', ids),
   revealFile: (id) => ipcRenderer.invoke('library:reveal', id),
   getState: (id) => ipcRenderer.invoke('state:get', id),

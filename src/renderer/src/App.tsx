@@ -5,6 +5,7 @@ import { useFileDrop, useTheme } from './hooks'
 import { TitleBar } from './components/TitleBar'
 import { Gallery } from './components/Gallery'
 import { SettingsPanel } from './components/SettingsPanel'
+import { BookDetailsDialog } from './components/BookDetailsDialog'
 import { Toast } from './components/Toast'
 import { Reader } from './reader/Reader'
 
@@ -40,6 +41,7 @@ export default function App(): ReactNode {
         </div>
       )}
       <SettingsPanel />
+      <BookDetailsDialog />
       <Toast />
     </div>
   )

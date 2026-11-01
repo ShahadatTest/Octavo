@@ -1,3 +1,5 @@
+import type { PageIndex } from './pages'
+
 export type BookFormat = 'epub' | 'pdf'
 
 export interface BookMeta {
@@ -10,6 +12,18 @@ export interface BookMeta {
   /** PDF page count. */
   pages?: number
 }
+
+/** Title and authors as the reader wants them shown, overriding what the file says. */
+export interface BookDetails {
+  title: string
+  authors: string[]
+}
+
+/**
+ * Version of the metadata extraction. Files indexed by an older version are read again, so
+ * improvements (such as title clean-up) reach books that are already in the library.
+ */
+export const INDEX_VERSION = 2
 
 /** One book file in the library, as recorded in `.octavo/catalog.json`. */
 export interface FileRecord {
@@ -25,6 +39,12 @@ export interface FileRecord {
   meta: BookMeta | null
   hasCover: boolean
   indexError?: string
+  /** INDEX_VERSION the metadata was extracted with; absent means version 1. */
+  indexVersion?: number
+  /** Edited by the reader; wins over `meta`. Kept on every file of a book. */
+  custom?: BookDetails
+  /** PDFs only: PAGE_INDEX_VERSION of the stored page text, absent when there is none. */
+  pageIndexVersion?: number
 }
 
 /** A gallery entry: one file, or an EPUB and a PDF of the same book. */
@@ -59,6 +79,8 @@ export interface Bookmark {
   fraction: number
   label: string
   excerpt: string
+  /** Printed page label, when known: from the PDF itself, or for an EPUB from its paired PDF. */
+  page?: string
   createdAt: string
 }
 
@@ -68,6 +90,8 @@ export interface Highlight {
   fraction: number
   /** Chapter title at the highlight. */
   label: string
+  /** Printed page label, when known: from the PDF itself, or for an EPUB from its paired PDF. */
+  page?: string
   text: string
   note: string
   color: HighlightColor
@@ -210,6 +234,10 @@ export interface OctavoApi {
   importDialog(): Promise<ImportResult | null>
   pathForFile(file: File): string
   saveIndex(update: IndexUpdate): Promise<void>
+  /** Sets (or with null, clears) the edited title and authors on every file of a book. */
+  setBookDetails(fileIds: string[], details: BookDetails | null): Promise<void>
+  getPageIndex(fileId: string): Promise<PageIndex | null>
+  savePageIndex(fileId: string, index: PageIndex): Promise<void>
   removeFiles(fileIds: string[]): Promise<void>
   revealFile(fileId: string): Promise<void>
   getState(fileId: string): Promise<FileState>

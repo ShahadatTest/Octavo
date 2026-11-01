@@ -214,7 +214,7 @@
   outline: none;
 }
 
-.card:focus-visible .cover {
+.card:focus-visible .cover__book {
   outline: 2px solid var(--accent-ring);
   outline-offset: 3px;
 }
@@ -224,7 +224,7 @@
   max-width: calc(var(--cover-w) * 1.25);
 }
 
-.card:hover .cover {
+.card:hover .cover__book {
   transform: translateY(-3px);
   box-shadow: var(--cover-shadow-hover);
 }
@@ -261,9 +261,18 @@
 
 /* ---- covers ------------------------------------------------------------------------------ */
 
+/* A 3:4 slot; the book inside keeps its own proportions and stands on the slot's bottom-left. */
 .cover {
   position: relative;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 3 / 4;
+}
+
+.cover__book {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 3px 6px 6px 3px;
   overflow: hidden;
   background: var(--surface-3);
@@ -273,15 +282,16 @@
     box-shadow 0.18s ease;
 }
 
-.cover img {
+.cover__book img {
   display: block;
   width: 100%;
   height: 100%;
+  /* The frame already has the image's proportions; cover only absorbs rounding. */
   object-fit: cover;
 }
 
 /* The spine: a soft fold of shade and light down the left edge. */
-.cover::after {
+.cover__book::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -480,4 +490,61 @@
 
 .drop__msg span {
   color: var(--text-2);
+}
+
+/* ---- edit title and author ---------------------------------------------------------------- */
+
+.details {
+  width: min(480px, calc(100vw - 48px));
+}
+
+.details__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.details__field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.details__field .field {
+  width: 100%;
+  height: 34px;
+  font-size: 14px;
+}
+
+.details__author {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.details__add {
+  align-self: flex-start;
+  height: 28px;
+  padding: 0 8px;
+  color: var(--text-2);
+}
+
+.details__from {
+  margin: 4px 0 18px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+.details__from strong {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.details__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

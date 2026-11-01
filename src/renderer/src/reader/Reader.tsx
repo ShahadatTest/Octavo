@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, Bookmark as BookmarkIcon, BookmarkCheck, ChevronLeft, ChevronRight, PanelLeft, Type } from 'lucide-react'
 import type { Book, FileRecord, FileState, Highlight, HighlightColor, Locator, ReaderSettings } from '@shared/types'
 import { readerCommands, useStore } from '../store'
-import { fetchBookFile } from '../lib/indexer'
+import { fetchBookFile, loadPageIndex } from '../lib/indexer'
+import { PageLocator } from '@shared/pages'
 import { percent, uid } from '../lib/format'
 import { rectOf, type Anchor } from '../components/Popover'
 import { restoreTitleBar } from '../hooks'
@@ -50,6 +51,12 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
   const [scrub, setScrub] = useState<number | null>(null)
   const [tab, setTab] = useState<SidebarTab>('contents')
   const [zoom, setZoom] = useState(1)
+  // EPUBs have no printed pages of their own; with the same book's PDF in the library, passages are
+  // looked up in its page text instead.
+  const locatorRef = useRef<PageLocator | null>(null)
+  const [hasLocator, setHasLocator] = useState(false)
+  const pageFor = (text: string | undefined, fraction: number): string | undefined =>
+    text ? locatorRef.current?.locate(text, fraction)?.label : undefined
 
   const persist = useCallback((s: FileState) => {
     void window.octavo.saveState(s)
@@ -141,6 +148,51 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
     if (status === 'ready') engineRef.current?.applySettings(settings)
   }, [settings, status])
 
+  const pairedPdf = file.format === 'epub' ? book.pdf : null
+  useEffect(() => {
+    if (!pairedPdf) return
+    let cancelled = false
+    void loadPageIndex(pairedPdf).then((index) => {
+      if (cancelled || !index) return
+      locatorRef.current = new PageLocator(index)
+      setHasLocator(true)
+    })
+    return () => {
+      cancelled = true
+    }
+    // The page index belongs to the PDF file, whatever object currently describes it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pairedPdf?.id])
+
+  // Highlights and bookmarks made before their page was known get it once it is.
+  const backfilled = useRef(false)
+  useEffect(() => {
+    const engine = engineRef.current
+    const cur = stateRef.current
+    if (status !== 'ready' || !engine || !cur || backfilled.current) return
+    if (file.format === 'epub' && !hasLocator) return
+    backfilled.current = true
+    const pageOf = (at: Locator, text: string, fraction: number): string | undefined =>
+      'page' in at ? engine.pageLabel?.(at.page) : pageFor(text, fraction)
+    let changed = false
+    const highlights = cur.highlights.map((h) => {
+      if (h.page) return h
+      const page = pageOf(h.at, h.text, h.fraction)
+      if (!page) return h
+      changed = true
+      return { ...h, page }
+    })
+    const bookmarks = cur.bookmarks.map((b) => {
+      if (b.page) return b
+      const page = pageOf(b.at, b.excerpt, b.fraction)
+      if (!page) return b
+      changed = true
+      return { ...b, page }
+    })
+    if (changed) update((s) => ({ ...s, highlights, bookmarks }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, hasLocator])
+
   useEffect(() => {
     const p = PALETTES[settings.theme]
     window.octavo.setTitleBarTheme({ color: p.bg, symbolColor: p.fg }).catch(() => undefined)
@@ -173,7 +225,8 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
     } else {
       const b = engine.bookmarkHere()
       if (!b) return
-      update((s) => ({ ...s, bookmarks: [...s.bookmarks, { ...b, id: uid(), createdAt: now() }] }))
+      const page = b.page ?? pageFor(b.excerpt, b.fraction)
+      update((s) => ({ ...s, bookmarks: [...s.bookmarks, { ...b, page, id: uid(), createdAt: now() }] }))
       useStore.getState().showToast('Page bookmarked')
     }
   }, [update])
@@ -190,6 +243,7 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
       at: sel.at,
       fraction: sel.fraction,
       label: sel.label,
+      page: sel.page ?? pageFor(sel.lead ?? sel.text, sel.fraction),
       text: sel.text,
       note: '',
       color,
@@ -251,6 +305,8 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
   }, [])
 
   // ---- render --------------------------------------------------------------------------------
+
+  const currentPage = loc?.page ?? (hasLocator && loc ? pageFor(loc.lead, loc.fraction) : undefined)
 
   const engine = engineRef.current
   const bookmarked = !!(engine && state && loc && engine.bookmarksHere(state.bookmarks).length > 0)
@@ -372,8 +428,8 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
               ))}
             </div>
           </div>
-          <span className="where">
-            {loc?.where ? `${loc.where} · ` : ''}
+          <span className="where" title={currentPage && file.format === 'epub' ? 'Page in the print edition, from the PDF' : undefined}>
+            {currentPage ? `Page ${currentPage} · ` : loc?.where ? `${loc.where} · ` : ''}
             {percent(fraction)}
           </span>
         </footer>

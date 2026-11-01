@@ -6,6 +6,8 @@ import { join } from 'node:path'
 import { strToU8, zipSync } from 'fflate'
 import { Library, normalizeState } from '../src/main/library'
 import { safeRelative, sniffFormat } from '../src/main/fsutil'
+import { INDEX_VERSION } from '../src/shared/types'
+import { PAGE_INDEX_VERSION } from '../src/shared/pages'
 
 const PDF = (tag: string): Uint8Array => strToU8(`%PDF-1.7\n% ${tag}\n%%EOF\n`)
 const EPUB = (tag: string): Uint8Array =>
@@ -144,4 +146,44 @@ test('normalizeState repairs partial files', () => {
   assert.equal(s.bookmarks.length, 1)
   assert.deepEqual(s.highlights, [])
   assert.equal(s.position, null)
+})
+
+test('edited details are stored on every file of a book and survive re-indexing', async () => {
+  const { lib } = sandbox()
+  await fs.mkdir(lib, { recursive: true })
+  writeFileSync(join(lib, 'b.pdf'), PDF('b'))
+  writeFileSync(join(lib, 'b.epub'), EPUB('b'))
+  const library = new Library(lib)
+  await library.init()
+  const ids = library.list().map((f) => f.id)
+  await library.setDetails(ids, { title: '  Computer   Systems ', authors: ['Randal E. Bryant', ' ', 'David R. O’Hallaron'] })
+  for (const f of library.list()) {
+    assert.deepEqual(f.custom, { title: 'Computer Systems', authors: ['Randal E. Bryant', 'David R. O’Hallaron'] })
+  }
+  await library.saveIndex({ fileId: ids[0], meta: { title: 'CSAPP 2016', authors: [] }, cover: null })
+  assert.equal(library.get(ids[0])?.custom?.title, 'Computer Systems')
+  assert.equal(library.get(ids[0])?.indexVersion, INDEX_VERSION)
+  await library.setDetails(ids, null)
+  assert.ok(library.list().every((f) => !f.custom))
+})
+
+test('a PDF page index is stored, validated, and dropped with the file', async () => {
+  const { lib } = sandbox()
+  await fs.mkdir(lib, { recursive: true })
+  writeFileSync(join(lib, 'p.pdf'), PDF('p'))
+  writeFileSync(join(lib, 'e.epub'), EPUB('e'))
+  const library = new Library(lib)
+  await library.init()
+  const pdf = library.list().find((f) => f.format === 'pdf')!
+  const epub = library.list().find((f) => f.format === 'epub')!
+  const index = { version: PAGE_INDEX_VERSION, labels: ['i', '1'], pages: ['preface', 'chapterone'] }
+  await library.savePageIndex(pdf.id, index)
+  assert.deepEqual(await library.getPageIndex(pdf.id), index)
+  assert.equal(library.get(pdf.id)?.pageIndexVersion, PAGE_INDEX_VERSION)
+  await library.savePageIndex(epub.id, index)
+  assert.equal(await library.getPageIndex(epub.id), null, 'only PDFs have page indexes')
+  await library.savePageIndex(pdf.id, { version: PAGE_INDEX_VERSION, labels: ['1'], pages: ['a', 'b'] } as never)
+  assert.deepEqual(await library.getPageIndex(pdf.id), index, 'a malformed index is refused')
+  await library.removeFiles([pdf.id])
+  await assert.rejects(fs.access(join(lib, '.octavo', 'pages', `${pdf.id}.json`)))
 })

@@ -30,8 +30,12 @@ export interface Relocation {
   /** The TocItem id of the current chapter, to mark it in the contents list. */
   chapterId: string | null
   at: Locator
-  /** "Page 12 of 340" or "Loc 31 of 410". */
+  /** Fallback position text when there is no printed page: "Loc 31 of 410". */
   where: string
+  /** Printed page label, when the format knows it (PDF). */
+  page?: string
+  /** EPUB: the text at the top of the view, to find the printed page in a paired PDF. */
+  lead?: string
   atEnd: boolean
 }
 
@@ -41,6 +45,10 @@ export interface SelectionInfo {
   rect: Rect
   fraction: number
   label: string
+  /** Printed page label, when the format knows it (PDF). */
+  page?: string
+  /** EPUB: the text from the start of the selection onward, to find its page in a paired PDF. */
+  lead?: string
 }
 
 export interface EngineEvents {
@@ -72,6 +80,8 @@ export interface Engine {
   clearSelection(): void
   zoomBy?(factor: number): void
   readonly zoom?: number
+  /** PDF: the printed label of a 1-based page ("xii", "112"). */
+  pageLabel?(page: number): string
   destroy(): void
 }
 

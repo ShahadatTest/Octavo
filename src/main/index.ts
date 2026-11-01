@@ -7,8 +7,10 @@ import { isFileId, Library } from './library'
 import { SettingsStore } from './settings'
 import { exportToObsidian } from './obsidian'
 import { version as appVersion } from '../../package.json'
+import type { PageIndex } from '../shared/pages'
 import type {
   AppInfo,
+  BookDetails,
   ConfirmOptions,
   FileState,
   ImportResult,
@@ -240,6 +242,14 @@ function registerIpc(): void {
     if (!isFileId(update?.fileId)) return
     await library.saveIndex(update)
     broadcastLibrary()
+  })
+  ipcMain.handle('library:setDetails', async (_e, ids: unknown, details: BookDetails | null) => {
+    await library.setDetails(Array.isArray(ids) ? ids.filter(isFileId) : [], details && typeof details === 'object' ? details : null)
+    broadcastLibrary()
+  })
+  ipcMain.handle('pages:get', (_e, id: unknown) => (isFileId(id) ? library.getPageIndex(id) : null))
+  ipcMain.handle('pages:save', async (_e, id: unknown, index: PageIndex) => {
+    if (isFileId(id)) await library.savePageIndex(id, index)
   })
   ipcMain.handle('library:remove', async (_e, ids: unknown) => {
     const valid = Array.isArray(ids) ? ids.filter(isFileId) : []

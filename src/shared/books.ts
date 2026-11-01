@@ -56,7 +56,10 @@ export function groupBooks(files: FileRecord[]): Book[] {
 
   // Title pass: only singles take part, and each title must be unambiguous on both sides.
   const singles = groups.filter((g) => !(g.epub && g.pdf))
-  const titleKey = (f: FileRecord | null): string => (f?.meta?.title ? normalizeKey(f.meta.title) : '')
+  const titleKey = (f: FileRecord | null): string => {
+    const title = f?.custom?.title || f?.meta?.title
+    return title ? normalizeKey(title) : ''
+  }
   const epubByTitle = new Map<string, Array<(typeof groups)[number]>>()
   const pdfByTitle = new Map<string, Array<(typeof groups)[number]>>()
   for (const g of singles) {
@@ -78,8 +81,14 @@ export function groupBooks(files: FileRecord[]): Book[] {
 
 function toBook(g: { epub: FileRecord | null; pdf: FileRecord | null }): Book {
   const first = (g.epub ?? g.pdf)!
-  const title = g.epub?.meta?.title || g.pdf?.meta?.title || titleFromPath(first.path)
-  const authors = g.epub?.meta?.authors.length ? g.epub.meta.authors : (g.pdf?.meta?.authors ?? [])
+  // Details the reader edited win; then the EPUB's metadata, then the PDF's, then the file name.
+  const custom = g.epub?.custom ?? g.pdf?.custom
+  const title = custom?.title || g.epub?.meta?.title || g.pdf?.meta?.title || titleFromPath(first.path)
+  const authors = custom
+    ? custom.authors
+    : g.epub?.meta?.authors.length
+      ? g.epub.meta.authors
+      : (g.pdf?.meta?.authors ?? [])
   const coverFile = [g.epub, g.pdf].find((f) => f?.hasCover) ?? null
   const added = [g.epub?.addedAt, g.pdf?.addedAt].filter(Boolean).sort()[0] ?? first.addedAt
   return { id: first.id, title, authors, epub: g.epub, pdf: g.pdf, coverFileId: coverFile?.id ?? null, addedAt: added }
@@ -155,6 +164,56 @@ export function sortBooks(books: Book[], sort: GallerySort, states: Record<strin
     author: (a, b) => surname(a.authors[0]).localeCompare(surname(b.authors[0])) || byTitle(a, b)
   }
   return [...books].sort(cmp[sort])
+}
+
+/**
+ * Tidies a title from book metadata: drops a bracketed ISBN or ID in front
+ * (`[9780262270830] Introduction to Algorithms`) and collapses stray spacing.
+ */
+export function cleanTitle(title: string): string {
+  return title
+    .replace(/^\s*[[(]\s*(?:ISBN[:\s]*)?[\dXx-]{10,17}\s*[\])]\s*[-:–]?\s*/, '')
+    .replace(/\s*[[(]\s*ISBN[:\s]*[\dXx-]{10,17}\s*[\])]\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+const NAME_SUFFIX = /^(inc|ltd|llc|co|corp|jr|sr|ii|iii|iv|phd|md)\.?$/i
+const wordCount = (s: string): number => s.trim().split(/\s+/).length
+
+/**
+ * Tidies author names from book metadata:
+ *   "Thomas H. Cormen ... [et Al.]."            → Thomas H. Cormen
+ *   "Deitel, Paul & Deitel, Harvey"             → Paul Deitel, Harvey Deitel
+ *   "Chad Sanderson, Mark Freeman, and B. Smith" → three authors
+ * A comma list is split only when every part is a full name, and "Surname, Given" is turned round
+ * only when the surname is one word, so "Peter Bruce, Andrew Bruce" and "O'Reilly Media, Inc."
+ * keep their meaning.
+ */
+export function cleanAuthors(authors: string[]): string[] {
+  const out: string[] = []
+  const add = (name: string): void => {
+    const n = name
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/[,;]+$/, '')
+      // A stray full stop after a surname goes; "Inc.", "Ltd." and initials keep theirs.
+      .replace(/(\p{Ll}{4,})\.$/u, '$1')
+    if (n && !out.includes(n)) out.push(n)
+  }
+  for (const raw of authors) {
+    const text = raw
+      .replace(/\s*(?:\.{3}|…)?\s*\[?\bet\.?\s+al\b\.?\]?\.?\s*$/i, '')
+      .replace(/\s*(?:\.{3}|…)\s*$/, '')
+      .trim()
+    for (const chunk of text.split(/\s*;\s*|\s+&\s+|,?\s+and\s+/i)) {
+      const parts = chunk.split(/\s*,\s*/).filter(Boolean)
+      if (parts.length === 2 && wordCount(parts[0]) === 1 && !NAME_SUFFIX.test(parts[1])) add(`${parts[1]} ${parts[0]}`)
+      else if (parts.length > 1 && parts.every((p) => wordCount(p) >= 2)) parts.forEach(add)
+      else add(chunk)
+    }
+  }
+  return out
 }
 
 /** PDF titles are often a file name or a word processor's placeholder; those are worse than nothing. */

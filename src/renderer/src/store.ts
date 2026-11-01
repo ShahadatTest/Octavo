@@ -33,6 +33,8 @@ interface State {
   query: string
   settingsOpen: boolean
   sidebarOpen: boolean
+  /** The book whose title and authors are being edited. */
+  editingDetails: Book | null
   toast: Toast | null
   indexing: { pending: number; done: number }
   importing: boolean
@@ -53,6 +55,7 @@ interface State {
   showToast(message: string, kind?: Toast['kind'], action?: Toast['action']): void
   dismissToast(): void
   openSettings(open: boolean): void
+  editDetails(book: Book | null): void
   toggleSidebar(open?: boolean): void
   navigate(cmd: NavCommand): void
 }
@@ -86,6 +89,7 @@ export const useStore = create<State>()((set, get) => ({
   query: '',
   settingsOpen: false,
   sidebarOpen: false,
+  editingDetails: null,
   toast: null,
   indexing: { pending: 0, done: 0 },
   importing: false,
@@ -231,6 +235,10 @@ export const useStore = create<State>()((set, get) => ({
 
   openSettings(open) {
     set({ settingsOpen: open })
+  },
+
+  editDetails(book) {
+    set({ editingDetails: book })
   },
 
   toggleSidebar(open) {

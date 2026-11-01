@@ -42,7 +42,9 @@ function quote(text: string): string {
     .join('\n>\n')
 }
 
+/** The printed page when known (from the PDF, or for an EPUB from its paired PDF), else the PDF page, else a percentage. */
 function where(h: Highlight): string {
+  if (h.page) return `p. ${h.page}`
   const page = pageOf(h.at)
   return page !== null ? `p. ${page}` : `${Math.round(h.fraction * 100)}%`
 }

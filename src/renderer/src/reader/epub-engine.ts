@@ -11,6 +11,9 @@ const mapToc = (items: FoliateTocItem[] | undefined): TocItem[] =>
 
 const cfiOf = (at: Locator): string | null => ('cfi' in at ? at.cfi : null)
 
+/** Enough text to find a passage in the paired PDF even when a page break interrupts it there. */
+const LEAD_CHARS = 400
+
 /** EPUB through foliate-js: paginated or scrolled, CFI locations, SVG highlight overlays. */
 export class EpubEngine implements Engine {
   private view: View
@@ -96,7 +99,11 @@ export class EpubEngine implements Engine {
     if (!text) return
     const cfi = this.view.getCFI(index, range)
     const label = this.view.getProgressOf(index, range)?.tocItem?.label ?? this.last?.tocItem?.label ?? ''
-    this.events.onSelection({ text, at: { cfi }, rect: rectOfRange(range), fraction: this.last?.fraction ?? 0, label })
+    // The selection plus what follows it: a short highlight alone is too little text to find in a PDF.
+    const after = range.cloneRange()
+    after.setEnd(doc.body, doc.body.childNodes.length)
+    const lead = after.toString().slice(0, LEAD_CHARS)
+    this.events.onSelection({ text, at: { cfi }, rect: rectOfRange(range), fraction: this.last?.fraction ?? 0, label, lead })
   }
 
   private onRelocate(detail: RelocateDetail): void {
@@ -112,6 +119,7 @@ export class EpubEngine implements Engine {
       chapterId: detail.tocItem?.href ?? null,
       at: { cfi: collapse(detail.cfi) },
       where,
+      lead: detail.range?.toString().slice(0, LEAD_CHARS),
       atEnd: !!this.view.renderer?.atEnd
     })
   }

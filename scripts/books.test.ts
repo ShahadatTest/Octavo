@@ -1,6 +1,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { bookProgress, groupBooks, matchesQuery, normalizeKey, sortBooks, titleFromPath } from '../src/shared/books'
+import {
+  bookProgress,
+  cleanAuthors,
+  cleanTitle,
+  groupBooks,
+  matchesQuery,
+  normalizeKey,
+  sortBooks,
+  titleFromPath
+} from '../src/shared/books'
 import type { FileRecord, StateSummary } from '../src/shared/types'
 
 let n = 0
@@ -119,4 +128,39 @@ test('sorting by title ignores a leading article; by author uses the surname', (
     sortBooks(books, 'author', {}).map((b) => b.authors[0]),
     ['Ann Abbot', 'Bo Moore', 'Zed Young']
   )
+})
+
+test('edited details win over the file metadata for title, authors and title pairing', () => {
+  const [book] = groupBooks([
+    file('Books/bgc_usl_c_1.pdf', null, { custom: { title: "Beej's Guide to C Programming", authors: ['Brian Hall'] } })
+  ])
+  assert.equal(book.title, "Beej's Guide to C Programming")
+  assert.deepEqual(book.authors, ['Brian Hall'])
+  const pair = groupBooks([
+    file('a/x.epub', { title: 'Some Long Book Title' }),
+    file('b/y.pdf', { title: 'garbage' }, { custom: { title: 'Some Long Book Title', authors: [] } })
+  ])
+  assert.equal(pair.length, 1, 'an edited title can pair a PDF with its EPUB')
+})
+
+test('cleanTitle drops a bracketed ISBN and stray spacing', () => {
+  assert.equal(cleanTitle('[9780262270830] Introduction to Algorithms, third edition'), 'Introduction to Algorithms, third edition')
+  assert.equal(cleanTitle('Data Contracts  (ISBN 978-1-098-15763-1)'), 'Data Contracts')
+  assert.equal(cleanTitle('Clean Architecture: A Craftsman’s Guide'), 'Clean Architecture: A Craftsman’s Guide')
+})
+
+test('cleanAuthors tidies the messy author fields found in real PDFs', () => {
+  assert.deepEqual(cleanAuthors(['Thomas H. Cormen ... [et Al.].']), ['Thomas H. Cormen'])
+  assert.deepEqual(cleanAuthors(['Deitel, Paul & Deitel, Harvey']), ['Paul Deitel', 'Harvey Deitel'])
+  assert.deepEqual(cleanAuthors(['Navnit Shukla, Kien Pham, Srikanth Sopirala, and Harsha Tadiparthi']), [
+    'Navnit Shukla',
+    'Kien Pham',
+    'Srikanth Sopirala',
+    'Harsha Tadiparthi'
+  ])
+  assert.deepEqual(cleanAuthors(['Joe Reis and Matt Housley']), ['Joe Reis', 'Matt Housley'])
+  assert.deepEqual(cleanAuthors(['Peter Bruce, Andrew Bruce']), ['Peter Bruce', 'Andrew Bruce'])
+  assert.deepEqual(cleanAuthors(["O'Reilly Media, Inc."]), ["O'Reilly Media, Inc."])
+  assert.deepEqual(cleanAuthors(['Kenneth H. Rosen', 'Kenneth H. Rosen']), ['Kenneth H. Rosen'])
+  assert.deepEqual(cleanAuthors(['Joel Holmes, Andrew Walker with William Kennedy']), ['Joel Holmes', 'Andrew Walker with William Kennedy'])
 })

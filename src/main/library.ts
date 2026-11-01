@@ -15,15 +15,43 @@ import {
   walk,
   writeAtomic
 } from './fsutil'
-import type {
-  BookMeta,
-  FileRecord,
-  FileState,
-  ImportResult,
-  IndexUpdate,
-  LibrarySnapshot,
-  StateSummary
+import {
+  INDEX_VERSION,
+  type BookDetails,
+  type BookMeta,
+  type FileRecord,
+  type FileState,
+  type ImportResult,
+  type IndexUpdate,
+  type LibrarySnapshot,
+  type StateSummary
 } from '../shared/types'
+import { PAGE_INDEX_VERSION, type PageIndex } from '../shared/pages'
+
+/** A page index from disk or from the renderer: two string arrays of the same length. */
+function isPageIndex(x: unknown): x is PageIndex {
+  const p = x as PageIndex | null
+  return (
+    !!p &&
+    typeof p.version === 'number' &&
+    Array.isArray(p.pages) &&
+    Array.isArray(p.labels) &&
+    p.pages.length === p.labels.length &&
+    p.pages.every((s) => typeof s === 'string') &&
+    p.labels.every((s) => typeof s === 'string')
+  )
+}
+
+function cleanDetails(d: BookDetails): BookDetails | null {
+  const title = typeof d.title === 'string' ? d.title.replace(/\s+/g, ' ').trim().slice(0, 500) : ''
+  const authors = Array.isArray(d.authors)
+    ? d.authors
+        .filter((a): a is string => typeof a === 'string')
+        .map((a) => a.replace(/\s+/g, ' ').trim().slice(0, 200))
+        .filter(Boolean)
+    : []
+  return title ? { title, authors } : null
+}
 
 interface Catalog {
   version: 1
@@ -118,7 +146,7 @@ export class Library {
   }
 
   async init(): Promise<void> {
-    for (const dir of ['covers', 'annotations', 'tmp']) await fs.mkdir(join(this.dataDir, dir), { recursive: true })
+    for (const dir of ['covers', 'annotations', 'pages', 'tmp']) await fs.mkdir(join(this.dataDir, dir), { recursive: true })
     const catalog = await readJson<Catalog>(this.catalogPath)
     for (const f of catalog?.files ?? []) if (isFileId(f.id)) this.files.set(f.id, f)
     await this.loadStates()
@@ -344,6 +372,43 @@ export class Library {
       }
       if (update.error) rec.indexError = update.error.slice(0, 500)
       else delete rec.indexError
+      rec.indexVersion = INDEX_VERSION
+      await this.saveCatalog()
+    })
+  }
+
+  /** Sets the reader's own title and authors on every file of a book; null goes back to the files' own. */
+  setDetails(ids: string[], details: BookDetails | null): Promise<void> {
+    return this.run(async () => {
+      const clean = details ? cleanDetails(details) : null
+      for (const id of ids) {
+        const rec = this.files.get(id)
+        if (!rec) continue
+        if (clean) rec.custom = clean
+        else delete rec.custom
+      }
+      await this.saveCatalog()
+    })
+  }
+
+  // ---- page text of PDFs, for printed page numbers -------------------------------------------
+
+  private pagesPath(id: string): string {
+    return join(this.dataDir, 'pages', `${id}.json`)
+  }
+
+  async getPageIndex(id: string): Promise<PageIndex | null> {
+    if (!isFileId(id)) return null
+    const index = await readJson<PageIndex>(this.pagesPath(id))
+    return isPageIndex(index) && index.version === PAGE_INDEX_VERSION ? index : null
+  }
+
+  savePageIndex(id: string, index: PageIndex): Promise<void> {
+    return this.run(async () => {
+      const rec = this.files.get(id)
+      if (!rec || rec.format !== 'pdf' || !isPageIndex(index)) return
+      await writeAtomic(this.pagesPath(id), JSON.stringify(index))
+      rec.pageIndexVersion = index.version
       await this.saveCatalog()
     })
   }
@@ -359,6 +424,7 @@ export class Library {
         if (this.opts.trash) await this.opts.trash(path)
         else await fs.rm(path, { force: true })
         await fs.rm(this.coverPath(id), { force: true })
+        await fs.rm(this.pagesPath(id), { force: true })
         this.files.delete(id)
       }
       await this.saveCatalog()
