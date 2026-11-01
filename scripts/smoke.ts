@@ -247,6 +247,10 @@ async function main(): Promise<void> {
     const [r, g, b] = await pixelAt(page, x, y)
     assert.ok(r < 40 && g < 40 && b < 40, `night background at ${Math.round(x)},${Math.round(y)} is rgb(${r},${g},${b})`)
   }
+  // So must the unread part of the scrubber: Chromium's native track stayed light.
+  const track = (await page.locator('.scrubber input').boundingBox())!
+  const [tr, tg, tb] = await pixelAt(page, track.x + track.width - 30, track.y + track.height / 2)
+  assert.ok(tr < 90 && tg < 90 && tb < 90, `night scrubber track is rgb(${tr},${tg},${tb})`)
   await page.click('.reader button[title="Appearance"]')
   await page.click('.theme-chip:has-text("Sepia")')
   await page.click('.appearance .seg button:has-text("Scroll")')

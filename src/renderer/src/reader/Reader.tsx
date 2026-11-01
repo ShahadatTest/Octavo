@@ -416,6 +416,7 @@ function ReaderView({ book, file }: { book: Book; file: FileRecord }): ReactNode
               max={1}
               step={0.001}
               value={fraction}
+              style={{ ['--fill' as string]: `${fraction * 100}%` }}
               aria-label="Position in book"
               disabled={status !== 'ready'}
               onChange={(e) => setScrub(Number(e.target.value))}
