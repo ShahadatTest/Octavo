@@ -74,6 +74,10 @@ jobs:
         run: |
           app=$(ls dist/*.AppImage)
           chmod +x "$app"
+          # The desktop entry leaves the sandbox decision to the launcher (electron-builder.yml).
+          "$app" --appimage-extract '*.desktop' > /dev/null
+          grep '^Exec=' squashfs-root/*.desktop
+          ! grep -q -- '--no-sandbox' squashfs-root/*.desktop
           try() {
             # Still running after 20 s (timeout's exit code 124) means it started.
             set +e

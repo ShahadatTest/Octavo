@@ -23,6 +23,10 @@ mac:
   target:
     - dmg
   category: public.app-category.books
+appImage:
+  # electron-builder writes --no-sandbox into the desktop entry by default. Its launcher already
+  # adds it only where Chromium's sandbox cannot run (no unprivileged user namespaces).
+  executableArgs: []
 linux:
   target:
     - AppImage

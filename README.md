@@ -247,7 +247,8 @@ written atomically. [DESIGN.md](DESIGN.md) documents every format.
 - EPUBs can contain scripts. They do not run: the page CSP allows no inline or book scripts.
 - The window runs with `contextIsolation` and `sandbox`, without Node. Books are served by a
   private `octavo-book://` protocol by content id, never by path, so the window cannot read files
-  outside the library.
+  outside the library. On Linux systems that block unprivileged user namespaces, such as Ubuntu
+  24.04, the AppImage has to start without Chromium's sandbox; the rest of this list still holds.
 - `npm run smoke` checks the first two with a hostile fixture EPUB (an inline script, an `onerror`
   handler, remote script, stylesheet and image) pointed at a local trap server: opening it runs
   nothing and the server sees no request.
