@@ -3,6 +3,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist'
 import type { PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs'
 import type { Bookmark, FileState, Highlight, Locator, ReaderSettings } from '@shared/types'
 import { mergeLineBoxes, type Box } from '@shared/geometry'
+import { selectionText } from '@shared/selection'
 import { loadViewer, openPdf, pdfjsLib } from '../lib/pdfjs'
 import { HIGHLIGHT_HEX, type Engine, type EngineEvents, type Rect, type TocItem } from './engine'
 
@@ -286,7 +287,7 @@ export class PdfEngine implements Engine {
     }
     const range = sel.getRangeAt(0)
     if (!this.container.contains(range.commonAncestorContainer)) return
-    const text = sel.toString().replace(/\s+/g, ' ').trim()
+    const text = selectionText(sel.toString())
     if (!text) return
     const rects = this.pdfRectsFor(range)
     if (rects.length === 0) return

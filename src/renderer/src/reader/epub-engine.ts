@@ -3,6 +3,7 @@ import type { FoliateTocItem, RelocateDetail, View } from 'foliate-js/view.js'
 import { Overlayer } from 'foliate-js/overlayer.js'
 import { collapse, compare } from 'foliate-js/epubcfi.js'
 import type { Bookmark, FileState, Highlight, HighlightColor, Locator, ReaderSettings } from '@shared/types'
+import { selectionText } from '@shared/selection'
 import { epubStyles } from './epub-styles'
 import { HIGHLIGHT_HEX, rectOfRange, type Engine, type EngineEvents, type TocItem } from './engine'
 
@@ -95,7 +96,7 @@ export class EpubEngine implements Engine {
     const sel = doc.getSelection()
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
-    const text = range.toString().replace(/\s+/g, ' ').trim()
+    const text = selectionText(range.toString())
     if (!text) return
     const cfi = this.view.getCFI(index, range)
     const label = this.view.getProgressOf(index, range)?.tocItem?.label ?? this.last?.tocItem?.label ?? ''
