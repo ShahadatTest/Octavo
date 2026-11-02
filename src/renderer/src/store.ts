@@ -184,12 +184,10 @@ export const useStore = create<State>()((set, get) => ({
 
   async removeBook(book) {
     const files = [book.epub, book.pdf].filter((f) => !!f)
+    const bin = get().info?.platform === 'win32' ? 'Recycle Bin' : 'Trash'
     const ok = await window.octavo.confirm({
       message: `Remove “${book.title}” from your library?`,
-      detail:
-        files.length > 1
-          ? 'Both the EPUB and the PDF move to the Recycle Bin. Highlights stay in the library folder and come back if you import the book again.'
-          : 'The file moves to the Recycle Bin. Highlights stay in the library folder and come back if you import the book again.',
+      detail: `${files.length > 1 ? 'Both the EPUB and the PDF move' : 'The file moves'} to the ${bin}. Highlights stay in the library folder and come back if you import the book again.`,
       confirmLabel: 'Remove'
     })
     if (!ok) return
