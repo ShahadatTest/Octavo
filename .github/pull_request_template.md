@@ -13,3 +13,4 @@ Closes #
 - [ ] UI changes: screenshots in the light and dark app themes, and on paper, sepia and night pages where it matters
 - [ ] README or DESIGN.md updated if behaviour or a data format changed
 - [ ] No new network access, and books are still never written to
+- [ ] If AI tools wrote part of this, the description says which

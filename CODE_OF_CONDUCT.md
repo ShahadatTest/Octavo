@@ -12,10 +12,11 @@ else in the project.
 
 ## Reporting
 
-On the comment, issue or pull request, open the **⋯** menu, choose **Report content**, then report
-it to the repository maintainers. The report reaches the maintainer privately. You can also report
-anything to GitHub directly from the same menu.
+On the comment, issue or pull request, open the **⋯** menu and choose **Report content**. For this
+repository the report goes to GitHub's staff, who review it against GitHub's own rules; GitHub only
+offers reporting to a project's maintainers on repositories owned by organizations.
 
-Reports get a reply within a week. Depending on what happened, the response ranges from a private
-word to removing content, locking a thread or blocking someone from the project, following the
-Covenant's [enforcement guidelines](https://www.contributor-covenant.org/version/2/1/code_of_conduct/#enforcement-guidelines).
+The maintainer also moderates the project directly. Depending on what happened, the response ranges
+from a word in the thread to hiding or removing content, locking a thread or blocking someone from
+the project, following the Covenant's
+[enforcement guidelines](https://www.contributor-covenant.org/version/2/1/code_of_conduct/#enforcement-guidelines).
