@@ -114,8 +114,9 @@ xvfb-run -a --server-args="-screen 0 1920x1080x24" npm run smoke
 - CI must pass.
 - UI changes include screenshots; behaviour changes update the README, and data or design changes
   update [DESIGN.md](DESIGN.md).
-- A new dependency that ships in the app needs a reason, and `npm run licenses` afterwards (CI
-  checks that `THIRD_PARTY_LICENSES.md` is current).
+- A new dependency that ships in the app needs a reason, and an entry in `SHIPPED` in
+  `scripts/third-party-licenses.js` so its license is listed. CI regenerates
+  `THIRD_PARTY_LICENSES.md` for every build, and `npm run release` commits it with each version.
 
 ### AI-assisted contributions
 

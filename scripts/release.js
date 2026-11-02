@@ -57,8 +57,10 @@ async function main() {
   setVersion(path.join(root, 'package.json'), next)
   setVersion(path.join(root, 'package-lock.json'), next)
   await runGitCliff(['--tag', tag, '-o', 'CHANGELOG.md'], { cwd: root, stdio: 'inherit' })
+  // The notices name Octavo's version and every shipped package's, so each release carries a fresh copy.
+  execFileSync('node', [path.join(__dirname, 'third-party-licenses.js')], { cwd: root, stdio: 'inherit' })
 
-  git('add', 'CHANGELOG.md', 'package.json', 'package-lock.json')
+  git('add', 'CHANGELOG.md', 'package.json', 'package-lock.json', 'THIRD_PARTY_LICENSES.md')
   git('commit', '-m', `chore(release): ${tag}`)
   git('tag', '-a', tag, '-m', `Octavo ${tag}`)
 
