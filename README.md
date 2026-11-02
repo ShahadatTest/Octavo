@@ -7,7 +7,8 @@ your disk: no accounts, no network.
 
 Built with Electron, React and TypeScript. EPUBs render with
 [foliate-js](https://github.com/johnfactotum/foliate-js), PDFs with
-[pdf.js](https://github.com/mozilla/pdf.js). Developed and tested on Windows 11.
+[pdf.js](https://github.com/mozilla/pdf.js). Runs on Windows and Linux: developed on Windows 11,
+and every build is tested on both.
 
 ![The library: a "Continue reading" shelf above a grid of book covers, each with EPUB and PDF badges](docs/screenshots/library.webp)
 
@@ -49,7 +50,7 @@ how many highlights it has. The library follows the system's light or dark theme
 ![The library in the dark theme](docs/screenshots/library-dark.webp)
 
 Right-click a card to open either format, fix its title and authors, mark it finished, export its
-highlights, show it in its folder, or remove it (the files go to the Recycle Bin). The PDF of Beej's
+highlights, show it in its folder, or remove it (the files go to the Recycle Bin or Trash). The PDF of Beej's
 guide called itself "Bgc Usl C 1"; the editor shows what the file says and keeps the correction
 separately.
 
@@ -103,25 +104,37 @@ notes are there for illustration. Cover art belongs to its publishers.
 
 ## Install
 
-There are no prebuilt installers yet. To build one you need [Node.js](https://nodejs.org) 22 or newer
-and git:
+Download the latest version from [Releases](https://github.com/mckenzie-andrew/Octavo/releases):
+
+- **Windows:** `Octavo-<version>-setup.exe`. The installer is not code-signed, so SmartScreen asks
+  before running it ("More info", then "Run anyway").
+- **Linux:** `Octavo-<version>.AppImage`. Make it executable and run it:
+  `chmod +x Octavo-*.AppImage && ./Octavo-*.AppImage`. AppImages need FUSE 2: on Ubuntu, install
+  `libfuse2` (`libfuse2t64` on 24.04 and later).
+- **macOS:** not yet. The code has the Mac window controls and menu, but Octavo has not been run on
+  a Mac, and macOS blocks apps that are not signed and notarised by Apple.
+
+Each release lists the files' SHA-256 checksums in `SHA256SUMS.txt`.
+
+### Building it yourself
+
+You need [Node.js](https://nodejs.org) 22 or newer and git:
 
 ```sh
 git clone https://github.com/mckenzie-andrew/Octavo.git
 cd Octavo
 npm install
-npm run package:win      # writes dist/Octavo-0.1.0-setup.exe
+npm run package:win      # Windows: dist/Octavo-<version>-setup.exe
+npm run package:linux    # Linux: dist/Octavo-<version>.AppImage
 ```
 
-The installer is not code-signed, so Windows SmartScreen asks before running it ("More info", then
-"Run anyway"). To skip the installer, build a folder instead and run `Octavo.exe` from it:
+The Linux package has to be built on Linux. To skip the installer on Windows, build a folder and run
+`Octavo.exe` from it:
 
 ```sh
 npm run build
 npx electron-builder --win --dir   # dist/win-unpacked/Octavo.exe
 ```
-
-`electron-builder.yml` also has macOS (dmg) and Linux (AppImage) targets. They have not been tried.
 
 ## Getting books in
 
@@ -208,16 +221,18 @@ otherwise it writes `<Title> (Octavo).md` beside it, so a note you wrote yoursel
 
 ## Where your data lives
 
+Octavo's folder is `%APPDATA%\Octavo` on Windows and `~/.config/Octavo` on Linux:
+
 ```
-%APPDATA%\Octavo\
+Octavo/
   settings.json               appearance, gallery, Obsidian vault
-  Library\
+  Library/
     <your books, as imported: files and folders>
-    .octavo\
+    .octavo/
       catalog.json            every book file, its metadata and any title you corrected
-      covers\<id>.webp        cover thumbnails
-      annotations\<id>.json   highlights, notes, bookmarks and reading position
-      pages\<id>.json         PDFs only: page labels and page text for page numbers
+      covers/<id>.webp        cover thumbnails
+      annotations/<id>.json   highlights, notes, bookmarks and reading position
+      pages/<id>.json         PDFs only: page labels and page text for page numbers
 ```
 
 `<id>` is the start of the file's SHA-256, so highlights belong to a book's content, not its file
@@ -246,7 +261,8 @@ npm run dev              # hot-reloading app
 npm test                 # unit tests (node:test)
 npm run typecheck
 npm run smoke            # builds, generates fixture books, drives the real app, screenshots to screenshots/
-npm run package:win      # NSIS installer in dist/
+npm run package:win      # Windows installer in dist/
+npm run package:linux    # Linux AppImage in dist/ (on Linux)
 ```
 
 `scripts/try-books.ts` imports any files you give it into a throwaway library and screenshots them;
@@ -273,11 +289,16 @@ npm run release                # set the version, write CHANGELOG.md, commit and
 git push --follow-tags
 ```
 
+[`.github/workflows/build.yml`](.github/workflows/build.yml) does the rest. Every push to main and
+every pull request runs the type check, the unit tests and the smoke run on Windows and Linux and
+packages both. A pushed version tag also publishes the Windows installer, the Linux AppImage and
+their checksums as a GitHub release, with the changelog entry as its notes.
+
 ## Not yet
 
 Full-text search inside a book, pairing and unpairing books by hand, collections or tags, watching
-the library folder instead of rescanning, prebuilt installers and updates. Run one copy of Octavo at
-a time: two windows on the same library would both write its catalogue.
+the library folder instead of rescanning, a macOS build, automatic updates. Run one copy of Octavo
+at a time: two windows on the same library would both write its catalogue.
 
 ## License
 
@@ -308,6 +329,7 @@ src/renderer   React app: gallery, reader with the foliate-js and pdf.js engines
 scripts/       unit tests, fixture books, smoke run, try-books, pdf.js asset copy, icons, notices, release
 resources/     app icon: icon.svg is the source, npm run icons renders icon.png / .ico / .icns
 docs/          screenshots for this README
+.github/       the build, test and release workflow
 cliff.toml     git-cliff configuration: changelog groups and version-bump rules
 DESIGN.md      the decisions, the data formats and how each feature works
 ```

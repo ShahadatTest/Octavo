@@ -62,7 +62,7 @@ async function main() {
   git('commit', '-m', `chore(release): ${tag}`)
   git('tag', '-a', tag, '-m', `Octavo ${tag}`)
 
-  console.log(`\nReleased ${tag}. Publish it with:\n\n  git push --follow-tags\n\nThen build the Windows installer with npm run package:win.`)
+  console.log(`\nReleased ${tag}. Publish it with:\n\n  git push --follow-tags\n\nThe tag push makes GitHub Actions build, test and publish the release (.github/workflows/build.yml).`)
 }
 
 main().catch((err) => {

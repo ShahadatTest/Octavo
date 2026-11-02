@@ -18,6 +18,7 @@
     "smoke": "npm run build && npm run fixtures && tsx scripts/smoke.ts",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux",
     "electron:fetch": "node node_modules/electron/install.js",
     "icons": "node scripts/make-icons.js",
     "licenses": "node scripts/third-party-licenses.js",
