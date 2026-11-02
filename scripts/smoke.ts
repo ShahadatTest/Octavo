@@ -92,6 +92,24 @@ async function main(): Promise<void> {
   await page.waitForSelector('.empty')
   await shot(page, '01-empty')
 
+  // ---- second launch quits; the first window keeps the library (#3) ----
+  {
+    const env2 = { ...process.env, OCTAVO_USER_DATA: userData, OCTAVO_LIBRARY_DIR: libraryDir } as Record<
+      string,
+      string
+    >
+    delete env2.ELECTRON_RUN_AS_NODE
+    const second = await electron.launch({ executablePath: electronPath, args: ['.'], cwd: root, env: env2 })
+    await Promise.race([
+      second.waitForEvent('close').then(() => undefined),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('second Octavo instance did not exit')), 20000)
+      )
+    ])
+    await page.waitForSelector('.empty', { timeout: 5000 })
+    console.log('  second instance exited')
+  }
+
   // ---- import: a folder, an extensionless PDF and a Drive zip ----
   const result = await page.evaluate(
     (paths) => window.octavo.importPaths(paths),

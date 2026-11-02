@@ -26,11 +26,28 @@ const TITLEBAR_HEIGHT = 40
 
 // Portable and test runs: keep Electron's profile and the library wherever the caller says.
 if (process.env.OCTAVO_USER_DATA) app.setPath('userData', process.env.OCTAVO_USER_DATA)
-const libraryDir = process.env.OCTAVO_LIBRARY_DIR || join(app.getPath('userData'), 'Library')
 
+// One window per library: a second launch restores and focuses the first instead of
+// opening another writer on the same catalog (#3). Take the lock before constructing
+// Library/Settings so a losing instance never touches the files.
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+}
+
+const libraryDir = process.env.OCTAVO_LIBRARY_DIR || join(app.getPath('userData'), 'Library')
 const library = new Library(libraryDir, { trash: (path) => shell.trashItem(path) })
 const settings = new SettingsStore(app.getPath('userData'))
 let win: BrowserWindow | null = null
+
+if (gotTheLock) {
+  app.on('second-instance', () => {
+    if (!win) return
+    if (win.isMinimized()) win.restore()
+    win.show()
+    win.focus()
+  })
+}
 
 // Book files and covers are served by id through this scheme, so the renderer never sees a path.
 protocol.registerSchemesAsPrivileged([
@@ -298,19 +315,21 @@ function registerIpc(): void {
   })
 }
 
-void app.whenReady().then(async () => {
-  await settings.init()
-  await library.init()
-  registerProtocol()
-  blockNetwork()
-  registerIpc()
-  buildMenu()
-  createWindow()
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+if (gotTheLock) {
+  void app.whenReady().then(async () => {
+    await settings.init()
+    await library.init()
+    registerProtocol()
+    blockNetwork()
+    registerIpc()
+    buildMenu()
+    createWindow()
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
   })
-})
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit()
+  })
+}
