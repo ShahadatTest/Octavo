@@ -1,6 +1,6 @@
 appId: app.octavo.reader
 productName: Octavo
-copyright: Copyright © 2026
+copyright: Copyright © 2026 Andrew McKenzie
 directories:
   buildResources: resources
   output: dist

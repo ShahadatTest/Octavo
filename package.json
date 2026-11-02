@@ -5,6 +5,7 @@
   "description": "An EPUB and PDF reader with a cover gallery, highlights, bookmarks and Obsidian export.",
   "main": "./out/main/index.js",
   "license": "GPL-3.0-or-later",
+  "author": "Andrew McKenzie",
   "private": true,
   "scripts": {
     "predev": "node scripts/copy-pdfjs-assets.js",
