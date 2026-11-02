@@ -117,6 +117,16 @@ xvfb-run -a --server-args="-screen 0 1920x1080x24" npm run smoke
 - A new dependency that ships in the app needs a reason, and `npm run licenses` afterwards (CI
   checks that `THIRD_PARTY_LICENSES.md` is current).
 
+### AI-assisted contributions
+
+Octavo itself is AI-generated (see [How Octavo is made](README.md#how-octavo-is-made)), so pull
+requests written with AI tools are welcome on the same terms as any other:
+
+- you are responsible for every line, and should be able to explain it;
+- you ran it: the checks pass and you tried the change in the app;
+- the pull request says which tools you used, and commits written by an AI carry a
+  `Co-Authored-By:` line for it, as Octavo's own do.
+
 ## Commit messages
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org). The changelog and the

@@ -4,6 +4,10 @@ A desktop reader for the EPUB and PDF books you own: a shelf of covers, highligh
 know their printed page, and a reader that remembers where you stopped. Free, open source, and
 entirely offline.
 
+> [!NOTE]
+> Octavo is AI-generated: written by Claude in Claude Code, directed by me.
+> [How it's made](#how-octavo-is-made).
+
 ![The library: a "Continue reading" shelf above a grid of book covers, each with EPUB and PDF badges](docs/screenshots/library.webp)
 
 ## Why Octavo exists
@@ -34,6 +38,19 @@ wanted, and I'm sharing it in case it's the one you wanted too.
   Markdown. If Octavo stopped tomorrow, nothing you made in it would be locked away.
 - **It gets better with use.** If it's almost right for you, [open an issue](#get-involved) or send
   a pull request.
+
+## How Octavo is made
+
+Octavo is AI-generated. Nearly all of its code, tests and documentation, this README included, were
+written by Claude, Anthropic's AI model, working in [Claude Code](https://claude.com/claude-code).
+I directed it: I decided what Octavo should do, used each version on my own library, said what was
+wrong, and chose what shipped. Every commit Claude wrote carries a `Co-Authored-By: Claude` line, so
+the history shows exactly which changes those are.
+
+What keeps it honest is what keeps any code honest: nothing ships until it passes the type check,
+the unit tests and an end-to-end run of the real app on Windows and Linux, including a hostile book
+that tries to run script and reach the network. If you find something a careful person would have
+caught, please [open an issue](https://github.com/mckenzie-andrew/Octavo/issues/new/choose).
 
 ## What it does
 
