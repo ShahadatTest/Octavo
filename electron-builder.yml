@@ -11,6 +11,7 @@ files:
 asar: true
 extraResources:
   - LICENSE
+  - THIRD_PARTY_LICENSES.md
 win:
   target:
     - nsis

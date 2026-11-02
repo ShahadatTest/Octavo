@@ -293,7 +293,10 @@ The name "Octavo" and the Octavo logo are not covered by this license. Please gi
 name and mark.
 
 foliate-js is MIT-licensed and pdf.js Apache-2.0. The bundled typefaces, Inter and Literata, are
-under the SIL Open Font License 1.1, and the icons are [Lucide](https://lucide.dev) (ISC).
+under the SIL Open Font License 1.1, and the icons are [Lucide](https://lucide.dev) (ISC). Every
+bundled package, font and pdf.js asset is listed with its license in
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md), which ships with each build; regenerate it with
+`npm run licenses` after changing dependencies.
 
 ## Project layout
 
@@ -302,7 +305,7 @@ src/shared     book pairing, metadata clean-up, page matching, Markdown export, 
 src/main       Electron main process: window, menu, IPC, library folder and catalogue, settings, Obsidian
 src/preload    the window.octavo bridge exposed to the renderer
 src/renderer   React app: gallery, reader with the foliate-js and pdf.js engines, metadata indexer, styles
-scripts/       unit tests, fixture books, smoke run, try-books, pdf.js asset copy, icons, release script
+scripts/       unit tests, fixture books, smoke run, try-books, pdf.js asset copy, icons, notices, release
 resources/     app icon: icon.svg is the source, npm run icons renders icon.png / .ico / .icns
 docs/          screenshots for this README
 cliff.toml     git-cliff configuration: changelog groups and version-bump rules

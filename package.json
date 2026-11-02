@@ -20,6 +20,7 @@
     "package:win": "npm run build && electron-builder --win",
     "electron:fetch": "node node_modules/electron/install.js",
     "icons": "node scripts/make-icons.js",
+    "licenses": "node scripts/third-party-licenses.js",
     "changelog": "git-cliff -o CHANGELOG.md",
     "version:next": "git-cliff --bumped-version",
     "release": "node scripts/release.js"
