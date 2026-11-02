@@ -1,42 +1,57 @@
 # Octavo
 
-A desktop reader for EPUB and PDF books. Your library is a gallery of covers; an EPUB and a PDF of
-the same book share one card; highlights, notes and bookmarks record the printed page they are on;
-and a book's highlights export to an Obsidian note in one click. Everything stays in a folder on
-your disk: no accounts, no network.
-
-Built with Electron, React and TypeScript. EPUBs render with
-[foliate-js](https://github.com/johnfactotum/foliate-js), PDFs with
-[pdf.js](https://github.com/mozilla/pdf.js). Runs on Windows and Linux: developed on Windows 11,
-and every build is tested on both.
+A desktop reader for the EPUB and PDF books you own: a shelf of covers, highlights and notes that
+know their printed page, and a reader that remembers where you stopped. Free, open source, and
+entirely offline.
 
 ![The library: a "Continue reading" shelf above a grid of book covers, each with EPUB and PDF badges](docs/screenshots/library.webp)
 
+## Why Octavo exists
+
+I built Octavo because I didn't like the other options.
+
+I keep my books as EPUB and PDF files, most of them in both formats, and I wanted one place to read
+them that did four things well:
+
+- **Highlights and notes I can use later.** Mark a passage, write next to it, and get all of it out
+  as a Markdown note in Obsidian, where the rest of my notes live.
+- **Remember where I was.** Close a book halfway through a chapter and come back to that page, in
+  either format.
+- **Real page numbers.** I never understood what an e-book "location" is. I wanted the page of the
+  printed book: the one I can find again and cite.
+- **Look good.** A shelf of covers I want to browse and pages I want to read. A reader is something
+  you look at for hours.
+
+The readers I tried each got part of that right and lost me on the rest. So I built the one I
+wanted, and I'm sharing it in case it's the one you wanted too.
+
+### Why it's open source
+
+- **Free stays free.** Octavo is GPL-3.0: it and every fork of it stay open.
+- **You can check the claims.** "No network, no tracking" is easy to say. Here the code that blocks
+  every request, and the test that proves a hostile book can't make one, are in the repository.
+- **Your library outlives the app.** Books stay ordinary files; highlights are plain JSON and
+  Markdown. If Octavo stopped tomorrow, nothing you made in it would be locked away.
+- **It gets better with use.** If it's almost right for you, [open an issue](#get-involved) or send
+  a pull request.
+
 ## What it does
 
-- **A library folder you own.** Octavo copies books into its own folder. Import files, whole
-  folders, or the `.zip` archives Google Drive makes when you download a folder. Formats are
-  recognised by content, so a PDF without a file extension still works, and importing the same book
+- **A library folder you own.** Import files, whole folders, or the `.zip` archives Google Drive
+  makes when you download a folder. Formats are recognised by content, and the same book imported
   twice is caught by its content hash.
-- **One card per book.** An EPUB and a PDF of the same book are paired by file name or by title and
-  share a card. Switch between them in the reader with the EPUB / PDF control.
-- **Covers at their own shape.** Every cover is drawn whole at its own proportions, so nothing is
-  cropped. Titles, authors and covers come from the files themselves, cleaned of the usual noise
-  (ISBNs in titles, "Surname, Given", "A & B" author strings). Anything still wrong can be corrected
-  by hand without touching the file.
-- **Reading EPUBs.** One page, two pages or continuous scrolling; the publisher's font, Literata or
-  Inter; text size, line spacing, line length, and justified, hyphenated text.
-- **Reading PDFs.** Continuous scrolling, fit to width or page, zoom, the outline as a table of
-  contents, and inverted pages for reading at night.
-- **Paper, sepia and night pages.** The page theme covers the whole reading area, its bar and the
-  window buttons. The library and dialogs follow the system light or dark theme, or one you pick.
-- **Highlights and notes.** Select text to highlight it in one of five colours, add a note, or copy
-  it. Click a highlight to recolour it, edit its note or delete it.
-- **Printed page numbers.** Highlights and bookmarks say "p. 112", the page in the print edition,
-  instead of an opaque location. See [Page numbers](#page-numbers).
-- **Obsidian export.** A book's highlights and notes become one Markdown note in your vault, grouped
-  by chapter, with the page of each.
-- **Private and offline.** Octavo makes no network requests, and scripts inside EPUBs do not run.
+- **One card per book.** An EPUB and a PDF of the same book are paired by file name or title and
+  share a card; switch formats in the reader.
+- **Covers at their own shape**, never cropped, with titles and authors cleaned of the usual
+  metadata noise, and correctable by hand without touching the file.
+- **EPUBs** in one page, two pages or scrolling, with the publisher's font, Literata or Inter, and
+  your choice of size, spacing and line length. **PDFs** with fit to width or page, zoom, the outline
+  as contents, and inverted pages at night.
+- **Paper, sepia and night pages**, and a library that follows the system's light or dark theme.
+- **Highlights and notes** in five colours, and **bookmarks**, each marked with the printed page:
+  "p. 112", not "Loc 1,734". See [Page numbers](#page-numbers).
+- **Obsidian export**: a book's highlights and notes as one Markdown note, by chapter, with pages.
+- **Private and offline**: no accounts, no network, and scripts inside books never run.
 
 ## A look around
 
@@ -45,14 +60,14 @@ and every build is tested on both.
 The "Continue reading" shelf holds the books in progress. Below it, every book: search by title or
 author (<kbd>/</kbd>), sort by recently read, recently added, title or author, filter by All /
 Reading / Not started / Finished, and size the covers with the slider. A card shows its progress and
-how many highlights it has. The library follows the system's light or dark theme.
+how many highlights it has.
 
 ![The library in the dark theme](docs/screenshots/library-dark.webp)
 
 Right-click a card to open either format, fix its title and authors, mark it finished, export its
-highlights, show it in its folder, or remove it (the files go to the Recycle Bin or Trash). The PDF of Beej's
-guide called itself "Bgc Usl C 1"; the editor shows what the file says and keeps the correction
-separately.
+highlights, show it in its folder, or remove it (the files go to the Recycle Bin or Trash). The PDF of
+Beej's guide called itself "Bgc Usl C 1"; the editor shows what the file says and keeps the
+correction separately.
 
 <p>
   <img src="docs/screenshots/book-menu.webp" width="49%" alt="A card's right-click menu: open EPUB, open PDF, edit title and author, mark as finished, export highlights, show in folder, remove">
@@ -112,31 +127,15 @@ Download the latest version from [Releases](https://github.com/mckenzie-andrew/O
   `chmod +x Octavo-*.AppImage && ./Octavo-*.AppImage`. AppImages need FUSE 2: on Ubuntu, install
   `libfuse2` (`libfuse2t64` on 24.04 and later).
 - **macOS:** not yet. The code has the Mac window controls and menu, but Octavo has not been run on
-  a Mac, and macOS blocks apps that are not signed and notarised by Apple.
+  a Mac, and macOS blocks apps that are not signed and notarised by Apple. If you have a Mac and want
+  to help, see [#5](https://github.com/mckenzie-andrew/Octavo/issues/5).
 
-Each release lists the files' SHA-256 checksums in `SHA256SUMS.txt`.
+Each release lists the files' SHA-256 checksums in `SHA256SUMS.txt`. To build Octavo yourself, see
+[CONTRIBUTING.md](CONTRIBUTING.md#building-and-running).
 
-### Building it yourself
+## Using Octavo
 
-You need [Node.js](https://nodejs.org) 22 or newer and git:
-
-```sh
-git clone https://github.com/mckenzie-andrew/Octavo.git
-cd Octavo
-npm install
-npm run package:win      # Windows: dist/Octavo-<version>-setup.exe
-npm run package:linux    # Linux: dist/Octavo-<version>.AppImage
-```
-
-The Linux package has to be built on Linux. To skip the installer on Windows, build a folder and run
-`Octavo.exe` from it:
-
-```sh
-npm run build
-npx electron-builder --win --dir   # dist/win-unpacked/Octavo.exe
-```
-
-## Getting books in
+### Getting books in
 
 Drop EPUB or PDF files, folders, or `.zip` archives anywhere on the window, or use **Import**
 (<kbd>Ctrl</kbd>+<kbd>O</kbd>). Octavo copies the books into its library folder, keeping the folders
@@ -152,7 +151,7 @@ To fix a book's title or authors, right-click its card and choose **Edit title a
 correction is stored in Octavo's catalogue, survives re-reading the files, and can be dropped again
 with **Use the file's details**. Book files are never written to.
 
-## Reading
+### Keys
 
 | Keys | |
 | --- | --- |
@@ -167,7 +166,7 @@ with **Use the file's details**. Book files are never written to.
 
 Reading positions are saved as you go, per file, and a book reopens where you left it.
 
-## Page numbers
+### Page numbers
 
 E-book readers usually place a passage by "location" or percentage, because an EPUB has no fixed
 pages: they depend on the window and the font size. Octavo records the page of the print edition
@@ -184,7 +183,7 @@ instead.
 
 Highlights made before a page was known are filled in the next time the book is opened.
 
-## Obsidian
+### Obsidian
 
 Choose your vault in Settings (<kbd>Ctrl</kbd>+<kbd>,</kbd>). **Export to Obsidian**, in the
 reader's Highlights tab or a card's right-click menu, writes `<vault>/Books/<Title>.md`; the
@@ -219,7 +218,7 @@ Highlights are grouped by chapter in reading order, with a section per format wh
 highlights in both. Octavo overwrites a note only if its front matter says `source: octavo`;
 otherwise it writes `<Title> (Octavo).md` beside it, so a note you wrote yourself is never replaced.
 
-## Where your data lives
+### Where your data lives
 
 Octavo's folder is `%APPDATA%\Octavo` on Windows and `~/.config/Octavo` on Linux:
 
@@ -239,6 +238,28 @@ Octavo/
 name: renaming or moving a file inside the library keeps them. Annotation files are plain JSON,
 written atomically. [DESIGN.md](DESIGN.md) documents every format.
 
+## What Octavo is, and isn't
+
+These decide what gets built.
+
+**Octavo is**
+
+- a reader for books you already own, as DRM-free files on your own disk;
+- private by construction: no accounts, no servers, no telemetry, no network;
+- meant to look and feel good, because reading happens on a screen for hours;
+- honest about your data: plain files you can read, back up and take elsewhere.
+
+**Octavo isn't**
+
+- a library manager. [Calibre](https://calibre-ebook.com) converts formats, edits metadata and
+  talks to e-readers; Octavo reads, highlights and remembers.
+- a store or a DRM reader. It opens DRM-free EPUB and PDF only.
+- a cloud service. Your library is a folder on your disk and stays there.
+
+A feature that needs an account or a server, or sends anything off your machine, won't be merged.
+If something optional ever needs the network, such as checking for updates, it will be off until you
+turn it on.
+
 ## Privacy and security
 
 - Octavo makes no network requests. The main process cancels any http(s) or WebSocket request from
@@ -249,57 +270,29 @@ written atomically. [DESIGN.md](DESIGN.md) documents every format.
   private `octavo-book://` protocol by content id, never by path, so the window cannot read files
   outside the library. On Linux systems that block unprivileged user namespaces, such as Ubuntu
   24.04, the AppImage has to start without Chromium's sandbox; the rest of this list still holds.
-- `npm run smoke` checks the first two with a hostile fixture EPUB (an inline script, an `onerror`
+- Every build runs the first two against a hostile test EPUB (an inline script, an `onerror`
   handler, remote script, stylesheet and image) pointed at a local trap server: opening it runs
   nothing and the server sees no request.
 
-## Development
+Found a way around any of this? Please report it privately; see [SECURITY.md](SECURITY.md).
 
-```sh
-npm install
-npm run electron:fetch   # Electron downloads its binary on demand
-npm run dev              # hot-reloading app
-npm test                 # unit tests (node:test)
-npm run typecheck
-npm run smoke            # builds, generates fixture books, drives the real app, screenshots to screenshots/
-npm run package:win      # Windows installer in dist/
-npm run package:linux    # Linux AppImage in dist/ (on Linux)
-```
+## Get involved
 
-`scripts/try-books.ts` imports any files you give it into a throwaway library and screenshots them;
-set `OCTAVO_EXE` to try a packaged build.
+Octavo is maintained by one person in spare time, so help of any size counts.
 
-| Environment variable | |
-| --- | --- |
-| `OCTAVO_USER_DATA` | Profile folder (settings and browser data). The library defaults to `Library` inside it. |
-| `OCTAVO_LIBRARY_DIR` | Library folder. |
+- **Use it and say what breaks.** [Bug reports](https://github.com/mckenzie-andrew/Octavo/issues/new/choose)
+  with the book format and steps to reproduce are the most useful thing you can send.
+- **Shape what's next.** The roadmap lives in
+  [issues labelled `enhancement`](https://github.com/mckenzie-andrew/Octavo/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement);
+  vote with a 👍 or add your case to the discussion.
+- **Write code.** Start with a
+  [good first issue](https://github.com/mckenzie-andrew/Octavo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  and read [CONTRIBUTING.md](CONTRIBUTING.md): how to build, test and propose a change.
+- **Got a Mac?** Octavo needs someone to run it there before it can ship for macOS
+  ([#5](https://github.com/mckenzie-andrew/Octavo/issues/5)).
 
-When launching Electron from a VS Code terminal, unset `ELECTRON_RUN_AS_NODE`: VS Code sets it, and
-it turns Electron into plain Node.
-
-## Releases and changelog
-
-Versions follow [Semantic Versioning](https://semver.org) and are derived from
-[Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:` and so on);
-[CHANGELOG.md](CHANGELOG.md) is generated from the commit history by
-[git-cliff](https://git-cliff.org).
-
-```sh
-npm run release -- --dry-run   # show the next version and its changelog entry
-npm run release                # set the version, write CHANGELOG.md, commit and tag
-git push --follow-tags
-```
-
-[`.github/workflows/build.yml`](.github/workflows/build.yml) does the rest. Every push to main and
-every pull request runs the type check, the unit tests and the smoke run on Windows and Linux and
-packages both. A pushed version tag also publishes the Windows installer, the Linux AppImage and
-their checksums as a GitHub release, with the changelog entry as its notes.
-
-## Not yet
-
-Full-text search inside a book, pairing and unpairing books by hand, collections or tags, watching
-the library folder instead of rescanning, a macOS build, automatic updates. Run one copy of Octavo
-at a time: two windows on the same library would both write its catalogue.
+Everyone taking part is expected to follow the [code of conduct](CODE_OF_CONDUCT.md). Changes are
+recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
@@ -314,23 +307,8 @@ FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
 The name "Octavo" and the Octavo logo are not covered by this license. Please give a fork its own
 name and mark.
 
-foliate-js is MIT-licensed and pdf.js Apache-2.0. The bundled typefaces, Inter and Literata, are
-under the SIL Open Font License 1.1, and the icons are [Lucide](https://lucide.dev) (ISC). Every
-bundled package, font and pdf.js asset is listed with its license in
-[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md), which ships with each build; regenerate it with
-`npm run licenses` after changing dependencies.
-
-## Project layout
-
-```
-src/shared     book pairing, metadata clean-up, page matching, Markdown export, highlight geometry, types
-src/main       Electron main process: window, menu, IPC, library folder and catalogue, settings, Obsidian
-src/preload    the window.octavo bridge exposed to the renderer
-src/renderer   React app: gallery, reader with the foliate-js and pdf.js engines, metadata indexer, styles
-scripts/       unit tests, fixture books, smoke run, try-books, pdf.js asset copy, icons, notices, release
-resources/     app icon: icon.svg is the source, npm run icons renders icon.png / .ico / .icns
-docs/          screenshots for this README
-.github/       the build, test and release workflow
-cliff.toml     git-cliff configuration: changelog groups and version-bump rules
-DESIGN.md      the decisions, the data formats and how each feature works
-```
+Octavo stands on [foliate-js](https://github.com/johnfactotum/foliate-js) (MIT) for EPUBs and
+[pdf.js](https://github.com/mozilla/pdf.js) (Apache-2.0) for PDFs. The bundled typefaces, Inter and
+Literata, are under the SIL Open Font License 1.1, and the icons are [Lucide](https://lucide.dev)
+(ISC). Every bundled package, font and pdf.js asset is listed with its license in
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md), which ships with each build.

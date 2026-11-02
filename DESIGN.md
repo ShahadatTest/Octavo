@@ -216,6 +216,7 @@ All four are built and covered by `npm run smoke`:
 4. **Export and settings.** Obsidian export, settings panel, icons,
    packaging.
 
-Later: full-text search inside a book, manual pair/unpair, collections or
-tags, a reading-time estimate, an in-app Google Drive download, watching the
-library folder instead of rescanning.
+What comes next is tracked in the
+[issues](https://github.com/mckenzie-andrew/Octavo/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement),
+within the limits in the README's "What Octavo is, and isn't": nothing that
+needs an account, a server or the network.
